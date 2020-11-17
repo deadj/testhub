@@ -6,6 +6,7 @@
 /resources/js
 /storage/*.key
 /vendor
+/app/Http/Requests/NewTestRequest.php
 .env
 .env.backup
 .phpunit.result.cache

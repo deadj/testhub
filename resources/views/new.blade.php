@@ -6,6 +6,15 @@
         <a class="btn btn-outline-primary" href="#">Войти</a>
     </div>	
     <div class="container">
+<!--         @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif -->
         <div class="row">
             <div id="newTest" class="col-9 pr-5">
                 <h2 class="mb-4">Создание теста</h2>
@@ -26,8 +35,7 @@
                     <div class="mb-3">
                         <span class="text-danger pr-2">*</span>
                         Проходной балл
-                        <input id="passingScore" style="width: 80px;" class="ml-1 form-control d-inline-block" type="number" min="0" max="100">
-                        %
+                        <input id="passingScore" style="width: 80px;" class="ml-1 form-control d-inline-block" type="number" min="0">
                     </div>
                     <div class="mb-3">
                         Ограничение по времени 
@@ -150,7 +158,7 @@
         <div class="row mt-5">
             <div class="col-12">
                 <p class="mb-1">Ссылка для прохождения теста</p>
-                <a href="[[publishLink]]">[[publishLink]]</a>
+                <a href="publishLink">publishLink</a>
                 <button type="button" class="btn btn-light">Копировать</button>
             </div>
         </div>
@@ -166,10 +174,10 @@
         <div class="row mt-5">
             <div class="col-12">
                 <p class="mb-1">Ссылка для просмотра результатов тестов</p>
-                <a href="[[resultsLink]]">[[resultsLink]]</a>
+                <a href="resultsLink">resultsLink</a>
                 <button type="button" class="btn btn-light">Копировать</button>
                 <br>
-                <a href="[[myTestsLink]]">Перейти к списку моих тестов</a>
+                <a href="myTestsLink">Перейти к списку моих тестов</a>
             </div>
         </div>
     </script>
@@ -202,8 +210,11 @@
     </script>
     <script type="text/x-template" id="errorPopup">
         <div class="alert alert-danger" role="alert">
-            [[message]]
+            message
         </div>        
+    </script>
+    <script type="text/x-template" id="fieldErrorsPopup">
+
     </script>
     <script src="{{ URL::asset('js/new.js') }}"></script>
 @endsection

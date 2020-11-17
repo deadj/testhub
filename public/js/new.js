@@ -1,8 +1,12 @@
 async function addTest(e) {
+    if (document.getElementById('errorsBlock')) {
+        document.querySelector('#errorsBlock').remove();
+    } 
+
     var testName = document.querySelector('#testName').value;
     var tags = document.querySelector('#tags').value;
     var testForeword = document.querySelector('#testForeword').value;
-    var passingScore = document.querySelector('#passingScore').value;
+    var passingScore = Number(document.querySelector('#passingScore').value);
     var timeLimit = document.querySelector('#timeLimit').value;
 
     if (document.querySelector('#showWrongAnswers').checked) {
@@ -22,7 +26,7 @@ async function addTest(e) {
     formData.append('testName', testName);
     formData.append('tags', tags);
     formData.append('testForeword', testForeword);
-    formData.append('passingScore', passingScore);
+    formData.append('minBalls', passingScore);
     formData.append('timeLimit', timeLimit);
     formData.append('showWrongAnswers', showWrongAnswers);
     formData.append('publicResults', publicResults);    
@@ -83,8 +87,31 @@ async function addTest(e) {
         testData.append(timeForQuestion);
         testData.append(endButton);
     } else {
-        console.log(response.status);
+        if (response.status === 422) {
+            var json = await response.json();
+            printErrors(json);
+        } else {
+            console.log(response.status);
+        }
     }
+}
+
+function printErrors(data){
+    var errorsBlock = document.createElement('div');
+    errorsBlock.id = "errorsBlock";
+    errorsBlock.classList.add('alert');
+    errorsBlock.classList.add('alert-danger');
+
+    var ul = document.createElement('ul');
+
+    for (error in data) {
+        var li = document.createElement('li');
+        li.innerHTML = data[error];
+        ul.append(li);
+    }
+
+    errorsBlock.append(ul);
+    document.querySelector('.container').prepend(errorsBlock);
 }
 
 function changeAnswerType(el){
@@ -163,65 +190,129 @@ function closeMessage(){
 }
 
 async function addQuestion(el) {
-    var question = document.getElementById('question').value;
-    var ballsCount = document.getElementById('ballsCount').value;
+    if (document.getElementById('errorsBlock')) {
+        document.querySelector('#errorsBlock').remove();
+    } 
+
     var answerType = document.getElementById('answersTypes').querySelector('button.disabled').id;
+    
+    var errors = checkQuestionData(answerType);
 
-    if (answerType == "oneAnswer" || answerType == "multipleAnswers") {
-        var answers = document.getElementById("answers").querySelectorAll("input[type='text']");
-        var answersValue = [];
+    if (errors.length != 0) {
+        printErrors(errors);
+    } else {
+        var question = document.getElementById('question').value;
+        var ballsCount = document.getElementById('ballsCount').value;
 
-        for (var i = 0; i < answers.length - 1; i++) {
-            answersValue[i] = answers[i].value;
-        }  
+        if (answerType == "oneAnswer" || answerType == "multipleAnswers") {
+            var answers = document.getElementById("answers").querySelectorAll("input[type='text']");
+            var answersValue = [];
 
-        var jsonAnswers = JSON.stringify(answersValue);
+            for (var i = 0; i < answers.length - 1; i++) {
+                answersValue[i] = answers[i].value;
+            }  
 
-        if (answerType == "oneAnswer") {
-            var trueAnswersId = document.querySelector(".answer input[type='radio']:checked").getAttribute('answerid');
-        } else {
-            var trueAnswers = document.querySelectorAll(".answer input[type='checkbox']:checked");
-            var trueAnswersId = [];
+            var jsonAnswers = JSON.stringify(answersValue);
 
-            for (var i = 0; i < trueAnswers.length; i++) {
-                trueAnswersId[i] = trueAnswers[i].getAttribute('answerid');
+            if (answerType == "oneAnswer") {
+                var trueAnswersId = document.querySelector(".answer input[type='radio']:checked").getAttribute('answerid');
+            } else {
+                var trueAnswers = document.querySelectorAll(".answer input[type='checkbox']:checked");
+                var trueAnswersId = [];
+
+                for (var i = 0; i < trueAnswers.length; i++) {
+                    trueAnswersId[i] = trueAnswers[i].getAttribute('answerid');
+                }
             }
+
+            var jsonTrueAnswers = JSON.stringify(trueAnswersId);
+        } else {
+            var answer = document.querySelector('#answers input').value;
+            var jsonTrueAnswers = JSON.stringify(answer);
+            var jsonAnswers = null;
         }
 
-        var jsonTrueAnswers = JSON.stringify(trueAnswersId);
-    } else {
-        var answer = document.querySelector('#answers input').value;
-        var jsonTrueAnswers = JSON.stringify(answer);
-        var jsonAnswers = null;
+        var formData = new FormData();
+        formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+        formData.append('question', question);
+        formData.append('balls', ballsCount);
+        formData.append('type', answerType);
+        formData.append('trueAnswer', jsonTrueAnswers);
+        formData.append('answer', jsonAnswers);
+        formData.append('testId', document.querySelector('#testId').value);
+
+        var response = await fetch('/addQuestion', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            document.querySelector('#question').value = "";
+            document.querySelector('#ballsCount').value = "";
+            changeAnswerType(oneAnswer);
+
+            responseData = await response.json();
+
+            questionsCount.innerHTML = "Всего вопросов: " + responseData['questionCount'];
+            allBalls.innerHTML = "Всего баллов: " + responseData['balls'];
+            timeForQuestion.innerHTML = responseData['time'] + " мин. на один вопрос";
+        } else {
+            if (response.status === 422) {
+                var json = await response.json();
+                printErrors(json);
+            } else {
+                console.log(response.status);
+            }
+        }          
+    }
+}
+
+function checkQuestionData(answerType){
+
+    var errors = [];
+
+    if (question.value == "") {
+        errors.push("Введите вопрос");
     }
 
-    var formData = new FormData();
-    formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
-    formData.append('question', question);
-    formData.append('balls', ballsCount);
-    formData.append('type', answerType);
-    formData.append('trueAnswer', jsonTrueAnswers);
-    formData.append('answer', jsonAnswers);
-    formData.append('testId', testId.value);
+    if (ballsCount.value == "") {
+        errors.push("Введите количество баллов");
+    }
 
-    var response = await fetch('/addQuestion', {
-        method: 'POST',
-        body: formData
-    });
 
-    if (response.ok) {
-        document.querySelector('#question').value = "";
-        document.querySelector('#ballsCount').value = "";
-        changeAnswerType(oneAnswer);
+    if (answerType == "oneAnswer") {
+        if (!document.querySelectorAll(".answer input[type='radio']:checked").length) {
+            errors.push("Не выбран правильный ответ");
+        } else {
+            var answers = document.querySelectorAll(".answer input[type='text']");
 
-        responseData = await response.json();
+            for (var i = 0; i < answers.length; i++) {
+                if (answers[i].value == "") {
+                    errors.push("Какой-то из ответов пустой");
+                    break;
+                }
+            }
+        }
+    } else if (answerType == "multipleAnswers") {
+        if (!document.querySelectorAll(".answer input[type='checkbox']:checked").length) {
+            errors.push("Не выбран правильный ответ");
+        } else {
+            var answers = document.querySelectorAll(".answer input[type='text']");
 
-        questionsCount.innerHTML = "Всего вопросов: " + responseData['questionCount'];
-        allBalls.innerHTML = "Всего баллов: " + responseData['balls'];
-        timeForQuestion.innerHTML = responseData['time'] + " мин. на один вопрос";
+            for (var i = 0; i < answers.length; i++) {
+                if (answers[i].value == "") {
+                    errors.push("Какой-то из ответов пустой");
+                    break;
+                }
+            }
+        }
     } else {
-        console.log(response.status);
-    }    
+        if (document.querySelector('#answers input').value == "") {
+            errors.push('Ответ пустой');
+        }
+    }
+
+    return errors;
 }
 
 async function openPublish(){
@@ -236,9 +327,10 @@ async function openPublish(){
         testData.remove();
         
         var publishTemplate = document.querySelector('#publishTemplate').innerHTML;
-        //replace publishLink
-        //replace resultsLink
-        //replace myTestsLin
+
+        publishTemplate = publishTemplate.replace(/publishLink/g, 'http://localhost/test/preface/' + testId.value);
+        publishTemplate = publishTemplate.replace(/resultsLink/g, 'http://localhost/stat/results/' + testId.value);
+        publishTemplate = publishTemplate.replace(/myTestsLink/g, 'http://localhost/stat/results');
 
         var publishBlock = document.createElement('div');
         publishBlock.id = "publishBlock";
@@ -247,7 +339,5 @@ async function openPublish(){
         publishBlock.classList.add('pr-5');
 
         document.querySelector('.container .row').prepend(publishBlock);
-
-
     }
 }
