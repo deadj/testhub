@@ -28,10 +28,15 @@
                         Проходной балл
                         <input id="passingScore" style="width: 80px;" class="ml-1 form-control d-inline-block" type="number" min="0">
                     </div>
-                    <div class="mb-3">
-                        Ограничение по времени 
-                        <input style="width: 80px;" id="timeLimit" class="ml-1 form-control d-inline-block" type="number" min="5" max="300">
-                        мин.
+                    <div class="mb-0">
+                        <label>
+                            <input type="checkbox" id="timeLimitCheckbox" onchange="openTimeLimitField()">
+                            Ограничение по времени
+                        </label>
+                        <div class="d-none" id="timeLimitField">
+                            <input id="timeLimit" class="ml-1 form-control d-inline-block col-8" type="number" min="5" max="300">
+                            мин.
+                        </div> 
                     </div>
                     <label>
                         <input id="showWrongAnswers" class="mr-1" type="checkbox">
@@ -174,11 +179,14 @@
     </script>
     <script type="text/x-template" id="textAnswerPopup">
         <p class="col-md-1 d-inline-block pl-0">Ответ:</p>
-        <input type="text" class="form-control col-md-10 d-inline-block">
+        <input type="text" id="textAnswerField" class="form-control col-md-10 d-inline-block">
     </script>
     <script type="text/x-template" id="numberAnswerPopup">
-        <p class="col-md-1 d-inline-block pl-0">Ответ:</p>
-        <input type="number" class="form-control col-md-3 d-inline-block">
+        <p class="col-md-2 d-inline-block pl-0">Ответ:</p>
+        <input type="number" id="numberAnswerField" class="form-control col-md-3 d-inline-block">
+        <br>
+        <p class="col-md-2 d-inline-block pl-0">Погрешность:</p>
+        <input type="number" id="errorAnswerField"class="form-control col-md-3 d-inline-block">
     </script>
     <script type="text/x-template" id="questionPopup">
         <form>

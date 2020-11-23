@@ -72,12 +72,18 @@ class NewTestController extends Controller
 
             $questionCount = $question->where('testId', $testId)->count();
             $balls = $question->where('testId', $testId)->get()->sum('balls');
-            $time = Test::find($testId)->minutesLimit / $questionCount;
+            $time = Test::find($testId)->minutesLimit;
+
+            if ($time == NULL) {
+                $time = "&#8734;";
+            } else {
+                $time /= $questionCount;
+            }
 
             return array(
                 'questionCount' => $questionCount,
                 'balls'         => $balls,
-                'time'          => round($time)
+                'time'          => $time
             );            
         }
     }
@@ -87,13 +93,10 @@ class NewTestController extends Controller
         return Validator::make($request->all(), [
             'testName' => 'required',
             'minBalls' => 'required|numeric|min:1',
-            'timeLimit' => 'required|numeric|min:1'
         ],[
             'testName.required' => 'Введите название',
             'minBalls.required' => 'Введите минимальный балл',  
-            'minBalls.min' => 'Минимальный балл должен быть не меньше 1',  
-            'timeLimit.required' => 'Введите ограничение по времени',
-            'timeLimit.min' => 'Ограничение по времени не может быть меньше минуты',          
+            'minBalls.min' => 'Минимальный балл должен быть не меньше 1',         
         ]);
     }
 

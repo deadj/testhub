@@ -1,3 +1,13 @@
+function openTimeLimitField() {
+    if (timeLimitCheckbox.checked) {
+        timeLimitField.classList.remove('d-none');
+        timeLimitField.classList.add('d-inline-block');
+    } else {
+        timeLimitField.classList.remove('d-inline-block');        
+        timeLimitField.classList.add('d-none');
+    }
+}
+
 async function addTest(e) {
     if (document.getElementById('errorsBlock')) {
         document.querySelector('#errorsBlock').remove();
@@ -226,8 +236,14 @@ async function addQuestion(el) {
             }
 
             var jsonTrueAnswers = JSON.stringify(trueAnswersId);
-        } else {
-            var answer = document.querySelector('#answers input').value;
+        } else if (answerType == "numberAnswer") {
+            var answerNumber = parseFloat(numberAnswerField.value);
+            var error = parseFloat(errorAnswerField.value);
+            var answer = [answerNumber - error, answerNumber + error];
+            var jsonTrueAnswers = JSON.stringify(answer);
+            var jsonAnswers = null;
+        } else if (answerType == "textAnswer") {
+            var answer = textAnswerField.value;
             var jsonTrueAnswers = JSON.stringify(answer);
             var jsonAnswers = null;
         }
