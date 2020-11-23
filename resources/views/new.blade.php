@@ -6,15 +6,6 @@
         <a class="btn btn-outline-primary" href="#">Войти</a>
     </div>	
     <div class="container">
-<!--         @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif -->
         <div class="row">
             <div id="newTest" class="col-9 pr-5">
                 <h2 class="mb-4">Создание теста</h2>
@@ -192,12 +183,12 @@
     <script type="text/x-template" id="questionPopup">
         <form>
             <div class="form-group">
-                <label for="question">Вопрос</label>
+                <label for="question">Вопрос:</label>
                 <textarea class="form-control" id="question" rows="5" required></textarea>
             </div>
             <div class="mb-3">
                 Число баллов:  
-                <input id="ballsCount" class="ml-1 form-control d-inline-block col-md-1" type="number" required>
+                <input id="ballsCount" class="ml-1 form-control d-inline-block col-md-2" type="number" required>
             </div>
             <div id="answersTypes">
                 Тип ответа: 
