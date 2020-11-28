@@ -51,13 +51,15 @@
                 </div>
             </div>
             <div id="rightBlock" class="col-md-3">
-                <p>Вы можете создавать 
-                тесты без регистрации, но если вы зарегистрируетесь, то легко сможете управлять своими тестами и просматривать результаты.</p>
-                <p>Если вы сейчас перейдёте к регистрации, то введённые вами данные не потеряются.</p>
-                <p>Также, после создания теста вы сможете указать e-mail, чтобы получать уведомления о сдаче тестов и получите ссылку для просмотра результатов.</p>
-                <a class="btn btn-link btn-block" href="">Зарегистрироваться</a>
-                <hr>
-                <div id="testData"></div>
+                <div id="registerInfo">
+                    <p>Вы можете создавать 
+                    тесты без регистрации, но если вы зарегистрируетесь, то легко сможете управлять своими тестами и просматривать результаты.</p>
+                    <p>Если вы сейчас перейдёте к регистрации, то введённые вами данные не потеряются.</p>
+                    <p>Также, после создания теста вы сможете указать e-mail, чтобы получать уведомления о сдаче тестов и получите ссылку для просмотра результатов.</p>
+                    <a class="btn btn-link btn-block" href="">Зарегистрироваться</a>
+                </div>
+                <div id="testData" class="mb-4"></div>
+                <ul style="height: 100%" id="questionsList" class="overflow-auto p-0"></ul>
             </div>
         </div>
     </div>
@@ -212,8 +214,15 @@
             message
         </div>        
     </script>
-    <script type="text/x-template" id="fieldErrorsPopup">
-
+    <!-- <script type="text/x-template" id="fieldErrorsPopup"></script> -->
+    <script type="text/x-template" id="questionForListTemplate">
+        <li class="border border-primary p-2 mb-1 rounded bg-light list-group-item">
+            <p class="m-0 p-0 font-weight-bold text-center">[[number]]</p>
+            <hr class="m-0 p-0">
+            <p class="mb-0" title="[[fullQuestion]]">[[cutQuestion]]</p>
+            <small title="[[fullAnswer]]">[[cutAnswer]]</small>
+            <small>Баллы: [[balls]]</small>
+        </li>
     </script>
     <script src="{{ URL::asset('js/new.js') }}"></script>
 @endsection

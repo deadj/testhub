@@ -67,6 +67,7 @@ class NewTestController extends Controller
             $question->type = $request->input('type');
             $question->answer = $request->input('answer');
             $question->trueAnswer = $request->input('trueAnswer');
+            $question->number = $question->where('testId', $testId)->count() + 1;
 
             $question->save();
 
@@ -80,10 +81,18 @@ class NewTestController extends Controller
                 $time /= $questionCount;
             }
 
+            $trueAnswer = $question->getTrueAnswer($question->id);
+
             return array(
-                'questionCount' => $questionCount,
-                'balls'         => $balls,
-                'time'          => $time
+                'questionCount'    => $questionCount,
+                'balls'            => $balls,
+                'time'             => $time,
+                'cutQuestion'      => mb_substr($question->questions, 0, 20) . "...",
+                'fullQuestion'     => $question->questions,
+                'cutAnswer'        => mb_substr($trueAnswer, 0, 20) . "...",
+                'fullAnswer'       => $trueAnswer,
+                'ballsForQuestion' => $question->balls,
+                'questionNumber'   => $question->number
             );            
         }
     }
@@ -102,7 +111,7 @@ class NewTestController extends Controller
 
     private function getQuestionValidator(object $request): object
     {
-        return Validator($request->all(), [
+        return Validator::make($request->all(), [
             'testId'   => 'required',
             'question' => 'required',
             'balls' => 'required|numeric',

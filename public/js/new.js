@@ -47,6 +47,9 @@ async function addTest(e) {
     });
 
     if (response.ok) {
+        //вынести в функцию
+        registerInfo.remove();
+
         var questionPopup = document.getElementById('questionPopup').innerHTML;
         var oneAnswer = document.createElement('div');
         oneAnswer.id = "answers";
@@ -96,6 +99,11 @@ async function addTest(e) {
         testData.append(allBalls);
         testData.append(timeForQuestion);
         testData.append(endButton);
+
+        // $(function(){
+        //     $("#questionsList").sortable();
+        //     $("#questionsList").disableSelection();
+        // });
     } else {
         if (response.status === 422) {
             var json = await response.json();
@@ -218,7 +226,7 @@ async function addQuestion(el) {
             var answers = document.getElementById("answers").querySelectorAll("input[type='text']");
             var answersValue = [];
 
-            for (var i = 0; i < answers.length - 1; i++) {
+            for (var i = 0; i < answers.length; i++) {
                 answersValue[i] = answers[i].value;
             }  
 
@@ -272,6 +280,9 @@ async function addQuestion(el) {
             questionsCount.innerHTML = "Всего вопросов: " + responseData['questionCount'];
             allBalls.innerHTML = "Всего баллов: " + responseData['balls'];
             timeForQuestion.innerHTML = responseData['time'] + " мин. на один вопрос";
+
+            //добавляю вопрос в список
+            addQuestionToList(responseData);
         } else {
             if (response.status === 422) {
                 var json = await response.json();
@@ -281,6 +292,21 @@ async function addQuestion(el) {
             }
         }          
     }
+}
+
+function addQuestionToList(data) {
+    var template = questionForListTemplate.innerHTML;
+    template = template.replace('[[cutQuestion]]', data['cutQuestion']);
+    template = template.replace('[[fullQuestion]]', data['fullQuestion']);
+    template = template.replace('[[cutAnswer]]', data['cutAnswer']);
+    template = template.replace('[[fullAnswer]]', data['fullAnswer']);
+    template = template.replace('[[balls]]', data['ballsForQuestion']);
+    template = template.replace('[[number]]', data['questionNumber'])
+
+    var question = document.createElement('div');
+    question.innerHTML = template;
+
+    questionsList.append(question);
 }
 
 function checkQuestionData(answerType){
