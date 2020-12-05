@@ -112,6 +112,16 @@ class NewTestController extends Controller
         }    
     }
 
+    public function getQuestion(Request $response): string
+    {
+        return json_encode($this->question->find($response->input('id')));
+    }
+
+    public function updateQuestion(Request $response): void
+    {
+        
+    }
+
     private function getTrueAnswer(int $id)
     {
         $trueAnswer = json_decode($this->question->find($id)->trueAnswer, true);

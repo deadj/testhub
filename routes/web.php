@@ -18,3 +18,5 @@ Route::get('/new', 'NewTestController@print');
 Route::post('/addTest', 'NewTestController@addTest');
 Route::post('/addQuestion', 'NewTestController@addQuestion');
 Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQuestionNumbers');
+Route::post('/getQuestion', 'NewTestController@getQuestion');
+Route::post('/updateQuestion', 'NewTestController@updateQuestion');

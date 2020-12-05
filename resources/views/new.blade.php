@@ -47,7 +47,7 @@
                         Сделать все результаты прохождения публичными
                     </label>
                     <br>
-                    <input type="submit" class="btn btn-primary mt-4 float-right" value="Продолжить" onclick="addTest(this)">
+                    <input id="nextStepButton" type="submit" class="btn btn-primary mt-4 float-right" value="Продолжить" onclick="addTest(this)">
                 </div>
             </div>
             <div id="rightBlock" class="col-md-3">
@@ -96,7 +96,7 @@
                 <div class="col-md-1">
                 </div>
                 <div class="col-md-9">
-                    <button type="button" class="btn btn-link btn-block" onclick="addNewAnswer(this)">Добавить ещё вариант</button>
+                    <button id="addAnswerToOneType" type="button" class="btn btn-link btn-block" onclick="addNewAnswer(this)">Добавить ещё вариант</button>
                 </div>
                 <div class="col-md-2">
                 </div>
@@ -135,7 +135,7 @@
                 <div class="col-md-1">
                 </div>
                 <div class="col-md-9">
-                    <button type="button" class="btn btn-link btn-block" onclick="addNewAnswer(this)">Добавить ещё вариант</button>
+                    <button id="addAnswerToMultiType" type="button" class="btn btn-link btn-block" onclick="addNewAnswer(this)">Добавить ещё вариант</button>
                 </div>
                 <div class="col-md-2">
                 </div>
@@ -216,7 +216,7 @@
     </script>
     <!-- <script type="text/x-template" id="fieldErrorsPopup"></script> -->
     <script type="text/x-template" id="questionForListTemplate">
-        <li class="questionFromList border border-primary p-2 mb-1 rounded bg-light list-group-item" questionid="[[questionId]]">
+        <li style="opacity: 0.4; cursor: pointer" class="questionFromList border border-primary p-2 mb-1 rounded bg-light list-group-item" questionid="[[questionId]]" onclick="printQuestion(this)">
             <p class="m-0 p-0 font-weight-bold text-center">[[number]]</p>
             <hr class="m-0 p-0">
             <p class="mb-0" title="[[fullQuestion]]">[[cutQuestion]]</p>

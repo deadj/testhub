@@ -63,12 +63,12 @@ async function addTest(e) {
         var testInfo = document.getElementById('testInfo');
         var questionBlock = testInfo.parentNode;
 
-        var continueButton = testInfo.querySelector("input[type='submit']").cloneNode(true);
-        continueButton.setAttribute('onclick', 'addQuestion(this)');
+        var nextStepButton = document.querySelector('#nextStepButton').cloneNode(true);
+        nextStepButton.setAttribute('onclick', 'addQuestion(this)');
 
         testInfo.remove();
         questionBlock.append(question);
-        questionBlock.append(continueButton);
+        questionBlock.append(nextStepButton);
 
         var testId = document.createElement('input');
         testId.id = 'testId';
@@ -298,6 +298,7 @@ async function addQuestion(el) {
         });
 
         if (response.ok) {
+            //вынести в функцию?
             document.querySelector('#question').value = "";
             document.querySelector('#ballsCount').value = "";
             changeAnswerType(oneAnswer);
@@ -412,6 +413,126 @@ async function openPublish(){
     }
 }
 
-function changeQuestionNumber(event, ui) {
-    console.log('test');
+async function printQuestion(el) {
+    var questionsList = document.querySelectorAll('.questionFromList');
+
+    for (question of questionsList) {
+        question.style.opacity = 0.4;
+    }
+
+    el.style.opacity = 1;
+    var id = el.getAttribute('questionid');
+
+    var formData = new FormData();
+    formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+    formData.append('id', el.getAttribute('questionid'));
+
+    var response = await fetch('/getQuestion', {
+        method: 'POST',
+        body: formData
+    });
+
+    if (response.ok) {
+        var questionData = await response.json();
+
+        question.value = questionData['questions'];
+        ballsCount.value = questionData['balls'];
+
+        if (questionData['type'] == "oneAnswer") {
+            changeAnswerType(oneAnswer);
+
+            var answers = JSON.parse(questionData['answer']);
+            var trueAnswer = JSON.parse(questionData['trueAnswer']);
+            var answersCount = answers.length;
+
+            for (var i = 0; i < answersCount - 2; i++) {
+                addNewAnswer(addAnswerToOneType);
+            }
+
+            var answersField = document.querySelectorAll("#answers input[type='text']");
+            var answersRadio = document.querySelectorAll("#answers input[type='radio']");
+
+            for (var i = 0; i < answersCount; i++) {
+                answersField[i].value = answers[i];
+            }
+
+            answersRadio[trueAnswer].checked = true;
+        } else if (questionData['type'] == "multipleAnswers") {
+            changeAnswerType(multipleAnswers);
+
+            var answers = JSON.parse(questionData['answer']);
+            var trueAnswer = JSON.parse(questionData['trueAnswer']);
+            var answersCount = answers.length;
+
+            for (var i = 0; i < answersCount - 2; i++) {
+                addNewAnswer(addAnswerToMultiType);
+            }
+
+            var answersField = document.querySelectorAll("#answers input[type='text']");
+            var answersCheckbox = document.querySelectorAll("#answers input[type='checkbox']");
+
+            for (var i = 0; i < answersCount; i++) {
+                answersField[i].value = answers[i];
+            }
+
+            for (var i = 0; i < trueAnswer.length; i++) {
+                answersCheckbox[trueAnswer[i]].checked = true;
+            }
+        } else if (questionData['type'] == "numberAnswer") {
+            var answer = JSON.parse(questionData['trueAnswer']);
+
+            changeAnswerType(numberAnswer);
+
+            numberAnswerField.value = (answer[1] - answer[0]) / 2 + answer[0];
+            errorAnswerField.value = (answer[1] - answer[0]) / 2;
+        } else if (questionData['type'] == 'textAnswer') {
+            changeAnswerType(textAnswer);
+            textAnswerField.value = JSON.parse(questionData['trueAnswer']);
+        }
+
+    } else {
+        console.log(response.status);
+    }
+    
+    if (!document.querySelector('#newQuestionButton')) {
+        var newQuestionButton = document.createElement('button');
+        newQuestionButton.id = "newQuestionButton";
+        newQuestionButton.classList.add('btn');
+        newQuestionButton.classList.add('btn-outline-primary');
+        newQuestionButton.classList.add('mt-4');
+        newQuestionButton.classList.add('float-right');
+        newQuestionButton.classList.add('mr-2');
+        newQuestionButton.setAttribute('onclick', 'closeEdit()');
+        newQuestionButton.innerHTML = "Создать новый вопрос";
+
+        nextStepButton.after(newQuestionButton);
+
+        nextStepButton.value = "Редактировать";
+        nextStepButton.setAttribute('onclick', "updateQuestion()");
+    }
+
+}
+
+function closeEdit() {
+    newQuestionButton.remove();
+
+    //вынести в функцию?
+    question.value = "";
+    ballsCount.value = "";
+    changeAnswerType(oneAnswer);
+
+    // добавить запрос на получение данных для инфы ниже 
+
+    questionsCount.innerHTML = "Всего вопросов: " + 'fuck';
+    allBalls.innerHTML = "Всего баллов: " + 'fuck';
+    timeForQuestion.innerHTML = 'fuck' + " мин. на один вопрос";
+
+    nextStepButton.value = "Продолжить";
+    nextStepButton.setAttribute('onclick', "addQuestion()");
+
+    var questionsList = document.querySelectorAll('.questionFromList');
+
+    for (question of questionsList) {
+        question.style.opacity = 0.4;
+    }
 }
