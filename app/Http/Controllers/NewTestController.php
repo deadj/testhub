@@ -9,6 +9,15 @@ use Validator;
 
 class NewTestController extends Controller
 {
+    private $question;
+    private $test;
+
+    public function __construct()
+    {
+        $this->question = new Question();
+        $this->test = new Test();
+    }
+
     public function print()
     {
     	return view('new');
@@ -23,30 +32,30 @@ class NewTestController extends Controller
         } else {
             $test = new Test();
 
-            $test->name              = $request->input('testName');
-            $test->tags              = $request->input('tags');
-            $test->foreword          = $request->input('testForeword');
-            $test->minBalls          = $request->input('minBalls');
-            $test->maxBalls          = 0;
-            $test->minutesLimit      = $request->input('timeLimit');
-            $test->showWrongAnswers  = $request->input('showWrongAnswers');
-            $test->publicResults     = $request->input('publicResults');
+            $this->test->name              = $request->input('testName');
+            $this->test->tags              = $request->input('tags');
+            $this->test->foreword          = $request->input('testForeword');
+            $this->test->minBalls          = $request->input('minBalls');
+            $this->test->maxBalls          = 0;
+            $this->test->minutesLimit      = $request->input('timeLimit');
+            $this->test->showWrongAnswers  = $request->input('showWrongAnswers');
+            $this->test->publicResults     = $request->input('publicResults');
 
             if ($request->input('showWrongAnswers')) {
-                $test->showWrongAnswers = 1;
+                $this->test->showWrongAnswers = 1;
             } else {
-                $test->showWrongAnswers = 0;
+                $this->test->showWrongAnswers = 0;
             }
 
             if ($request->input('publicResults')) {
-                $test->publicResults = 1;
+                $this->test->publicResults = 1;
             } else {
-                $test->publicResults = 0;
+                $this->test->publicResults = 0;
             }
 
-            $test->save();      
+            $this->test->save();      
 
-            return $test->id;     
+            return $this->test->id;     
         }
     }
 
@@ -57,22 +66,20 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
-            $question = new Question();
-
             $testId = $request->input('testId');
 
-            $question->testId = $testId;
-            $question->questions = $request->input('question');
-            $question->balls = $request->input('balls');
-            $question->type = $request->input('type');
-            $question->answer = $request->input('answer');
-            $question->trueAnswer = $request->input('trueAnswer');
-            $question->number = $question->where('testId', $testId)->count() + 1;
+            $this->question->testId     = $testId;
+            $this->question->questions  = $request->input('question');
+            $this->question->balls      = $request->input('balls');
+            $this->question->type       = $request->input('type');
+            $this->question->answer     = $request->input('answer');
+            $this->question->trueAnswer = $request->input('trueAnswer');
+            $this->question->number     = $this->question->where('testId', $testId)->count() + 1;
 
-            $question->save();
+            $this->question->save();
 
-            $questionCount = $question->where('testId', $testId)->count();
-            $balls = $question->where('testId', $testId)->get()->sum('balls');
+            $questionCount = $this->question->where('testId', $testId)->count();
+            $balls = $this->question->where('testId', $testId)->get()->sum('balls');
             $time = Test::find($testId)->minutesLimit;
 
             if ($time == NULL) {
@@ -81,20 +88,49 @@ class NewTestController extends Controller
                 $time /= $questionCount;
             }
 
-            $trueAnswer = $question->getTrueAnswer($question->id);
+            $trueAnswer = $this->getTrueAnswer($this->question->id);
 
             return array(
+                'questionId'       => $this->question->id,
                 'questionCount'    => $questionCount,
                 'balls'            => $balls,
                 'time'             => $time,
-                'cutQuestion'      => mb_substr($question->questions, 0, 20) . "...",
-                'fullQuestion'     => $question->questions,
+                'cutQuestion'      => mb_substr($this->question->questions, 0, 20) . "...",
+                'fullQuestion'     => $this->question->questions,
                 'cutAnswer'        => mb_substr($trueAnswer, 0, 20) . "...",
                 'fullAnswer'       => $trueAnswer,
-                'ballsForQuestion' => $question->balls,
-                'questionNumber'   => $question->number
-            );            
+                'ballsForQuestion' => $this->question->balls,
+                'questionNumber'   => $this->question->number
+            );
         }
+    }
+
+    public function changeOrderOfQuestionNumbers(Request $request)
+    {
+        foreach (json_decode($request->numbersArray, true) as $number) {
+            $this->question->where('id', $number[0])->update(['number' => $number[1]]);
+        }    
+    }
+
+    private function getTrueAnswer(int $id)
+    {
+        $trueAnswer = json_decode($this->question->find($id)->trueAnswer, true);
+        $type = $this->question->find($id)->type;
+        $answer = NULL;
+
+        if ($type == Question::TYPE_ONE_ANSWER) {
+            $answer = json_decode($this->question->find($id)->answer, true)[$trueAnswer];
+        } elseif ($type == Question::TYPE_MULTIPLE_ANSWER) {
+            foreach ($trueAnswer as $stepAnswer) {
+                $answer .= json_decode($this->question->find($id)->answer, true)[$stepAnswer] . "; ";
+            }
+        } elseif ($type == Question::TYPE_NUMBER_ANSWER) {
+            $answer = "от " . $trueAnswer[0] . " до " . $trueAnswer[1];
+        } elseif ($type == Question::TYPE_TEXT_ANSWER) {
+            $answer = $trueAnswer;
+        }
+
+        return $answer;        
     }
 
     private function getTestValidator(object $request): object

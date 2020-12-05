@@ -17,3 +17,4 @@ Route::get('/', 'HomeController@print');
 Route::get('/new', 'NewTestController@print');
 Route::post('/addTest', 'NewTestController@addTest');
 Route::post('/addQuestion', 'NewTestController@addQuestion');
+Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQuestionNumbers');

@@ -216,7 +216,7 @@
     </script>
     <!-- <script type="text/x-template" id="fieldErrorsPopup"></script> -->
     <script type="text/x-template" id="questionForListTemplate">
-        <li class="border border-primary p-2 mb-1 rounded bg-light list-group-item">
+        <li class="questionFromList border border-primary p-2 mb-1 rounded bg-light list-group-item" questionid="[[questionId]]">
             <p class="m-0 p-0 font-weight-bold text-center">[[number]]</p>
             <hr class="m-0 p-0">
             <p class="mb-0" title="[[fullQuestion]]">[[cutQuestion]]</p>

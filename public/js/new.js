@@ -100,10 +100,11 @@ async function addTest(e) {
         testData.append(timeForQuestion);
         testData.append(endButton);
 
-        // $(function(){
-        //     $("#questionsList").sortable();
-        //     $("#questionsList").disableSelection();
-        // });
+        $('#questionsList').sortable({
+            update: function(event, ui) {
+                changeOrderOfQuestionNumbers();
+            }
+        });
     } else {
         if (response.status === 422) {
             var json = await response.json();
@@ -111,6 +112,32 @@ async function addTest(e) {
         } else {
             console.log(response.status);
         }
+    }
+}
+
+async function changeOrderOfQuestionNumbers() {
+    var questionsList = document.querySelectorAll('.questionFromList');
+    var numbersArray = [];
+    
+    for (var i = 0; i < questionsList.length; i++) {
+        questionsList[i].querySelector('p').innerHTML = i + 1;
+        numbersArray[i] = [parseInt(questionsList[i].getAttribute('questionid')), i + 1];
+    }
+    
+    var formData = new FormData();
+    formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+    formData.append('testId', testId.value);
+    formData.append('numbersArray', JSON.stringify(numbersArray));
+
+    var response = await fetch('/changeOrderOfQuestionNumbers', {
+        method: 'POST',
+        body: formData
+    });
+
+    if (response.ok) {
+        console.log('ok');
+    } else {
+        console.log('fuck');
     }
 }
 
@@ -301,7 +328,8 @@ function addQuestionToList(data) {
     template = template.replace('[[cutAnswer]]', data['cutAnswer']);
     template = template.replace('[[fullAnswer]]', data['fullAnswer']);
     template = template.replace('[[balls]]', data['ballsForQuestion']);
-    template = template.replace('[[number]]', data['questionNumber'])
+    template = template.replace('[[number]]', data['questionNumber']);
+    template = template.replace('[[questionId]]', data['questionId']);
 
     var question = document.createElement('div');
     question.innerHTML = template;
@@ -382,4 +410,8 @@ async function openPublish(){
 
         document.querySelector('.container .row').prepend(publishBlock);
     }
+}
+
+function changeQuestionNumber(event, ui) {
+    console.log('test');
 }
