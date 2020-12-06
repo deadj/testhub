@@ -20,3 +20,4 @@ Route::post('/addQuestion', 'NewTestController@addQuestion');
 Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQuestionNumbers');
 Route::post('/getQuestion', 'NewTestController@getQuestion');
 Route::post('/updateQuestion', 'NewTestController@updateQuestion');
+Route::post('/getTestInfoToView', 'NewTestController@getTestInfoToView');

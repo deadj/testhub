@@ -112,14 +112,69 @@ class NewTestController extends Controller
         }    
     }
 
-    public function getQuestion(Request $response): string
+    public function getQuestion(Request $request): string
     {
-        return json_encode($this->question->find($response->input('id')));
+        return json_encode($this->question->find($request->input('id')));
     }
 
-    public function updateQuestion(Request $response): void
+    public function updateQuestion(Request $request): array
     {
-        
+        $validator = $this->getQuestionValidator($request);
+
+        if ($validator->fails()) {
+            return response()->json($validator->messages(), 422);
+        } else {
+            $question = $this->question->where('id', $request->input('id'));
+
+            $question->update([
+                'questions'  => $request->input('question'),
+                'balls'      => $request->input('balls'),
+                'type'       => $request->input('type'),
+                'answer'     => $request->input('answer'),
+                'trueAnswer' => $request->input('trueAnswer')
+            ]);
+
+            
+            $trueAnswer = $this->getTrueAnswer($request->input('id'));
+            $question = $this->question->find($request->input('id'));
+
+            $questionInfo = [
+                'cutQuestion'      => mb_substr($question->questions, 0, 20) . "...",
+                'fullQuestion'     => $question->questions,
+                'cutAnswer'        => mb_substr($trueAnswer, 0, 20) . "...",
+                'fullAnswer'       => $trueAnswer,
+                'balls'            => $question->balls
+            ];
+
+            $testInfo = $this->getTestInfo($request->input('testId'));
+            
+            $returnArray = $testInfo + $questionInfo;
+            return $returnArray;
+        }
+    }
+
+    public function getTestInfoToView(Request $request): array
+    {
+        return $this->getTestInfo($request->input('testId'));
+    }
+
+    private function getTestInfo(int $testId): array
+    {
+        $questionCount = $this->question->where('testId', $testId)->count();
+        $balls = $this->question->where('testId', $testId)->get()->sum('balls');
+        $time = Test::find($testId)->minutesLimit;
+
+        if ($time == NULL) {
+            $time = "&#8734;";
+        } else {
+            $time /= $questionCount;
+        }       
+
+        return [
+            'questionCount' => $questionCount,
+            'balls' => $balls,
+            'time' => $time
+        ] ;
     }
 
     private function getTrueAnswer(int $id)
@@ -147,11 +202,11 @@ class NewTestController extends Controller
     {
         return Validator::make($request->all(), [
             'testName' => 'required',
-            'minBalls' => 'required|numeric|min:1',
+            'minBalls' => 'required|numeric|min:0',
         ],[
             'testName.required' => 'Введите название',
             'minBalls.required' => 'Введите минимальный балл',  
-            'minBalls.min' => 'Минимальный балл должен быть не меньше 1',         
+            'minBalls.min' => 'Минимальный балл должен быть не меньше 0',         
         ]);
     }
 

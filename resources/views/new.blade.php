@@ -219,9 +219,9 @@
         <li style="opacity: 0.4; cursor: pointer" class="questionFromList border border-primary p-2 mb-1 rounded bg-light list-group-item" questionid="[[questionId]]" onclick="printQuestion(this)">
             <p class="m-0 p-0 font-weight-bold text-center">[[number]]</p>
             <hr class="m-0 p-0">
-            <p class="mb-0" title="[[fullQuestion]]">[[cutQuestion]]</p>
-            <small title="[[fullAnswer]]">[[cutAnswer]]</small>
-            <small>Баллы: [[balls]]</small>
+            <p class="questionText mb-0" title="[[fullQuestion]]">[[cutQuestion]]</p>
+            <small class="answerText" title="[[fullAnswer]]">[[cutAnswer]]</small>
+            <small class="ballsCount">Баллы: [[balls]]</small>
         </li>
     </script>
     <script src="{{ URL::asset('js/new.js') }}"></script>
