@@ -211,7 +211,7 @@
     </script>
     <script type="text/x-template" id="errorPopup">
         <div class="alert alert-danger" role="alert">
-            message
+            [[message]]
         </div>        
     </script>
     <!-- <script type="text/x-template" id="fieldErrorsPopup"></script> -->

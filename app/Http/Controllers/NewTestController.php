@@ -190,7 +190,10 @@ class NewTestController extends Controller
                 $answer .= json_decode($this->question->find($id)->answer, true)[$stepAnswer] . "; ";
             }
         } elseif ($type == Question::TYPE_NUMBER_ANSWER) {
-            $answer = "от " . $trueAnswer[0] . " до " . $trueAnswer[1];
+            $answer = "от " . 
+            strval($trueAnswer[0] - $trueAnswer[1]) . 
+            " до " . 
+            strval($trueAnswer[0] + $trueAnswer[1]);
         } elseif ($type == Question::TYPE_TEXT_ANSWER) {
             $answer = $trueAnswer;
         }

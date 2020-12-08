@@ -47,72 +47,76 @@ async function addTest(e) {
     });
 
     if (response.ok) {
-        //вынести в функцию
-        registerInfo.remove();
-
-        var questionPopup = document.getElementById('questionPopup').innerHTML;
-        var oneAnswer = document.createElement('div');
-        oneAnswer.id = "answers";
-        oneAnswer.innerHTML = document.getElementById('oneAnswerPopup').innerHTML;
-
-        var question = document.createElement('div');
-        question.id = 'questionBlock';
-        question.innerHTML = questionPopup;
-        question.append(oneAnswer);
-        
-        var testInfo = document.getElementById('testInfo');
-        var questionBlock = testInfo.parentNode;
-
-        var nextStepButton = document.querySelector('#nextStepButton').cloneNode(true);
-        nextStepButton.setAttribute('onclick', 'addQuestion(this)');
-
-        testInfo.remove();
-        questionBlock.append(question);
-        questionBlock.append(nextStepButton);
-
-        var testId = document.createElement('input');
-        testId.id = 'testId';
-        testId.type = "hidden";
-        testId.value = await response.text();
-        document.querySelector('body').append(testId);
-
-        var questionsCount = document.createElement('p');
-        questionsCount.id = "questionsCount";
-        questionsCount.innerHTML = "Всего вопросов: 0";
-
-        var allBalls = document.createElement('p');
-        allBalls.id = "allBalls";
-        allBalls.innerHTML = "Всего баллов: 0";
-
-        var timeForQuestion = document.createElement('p');
-        timeForQuestion.id = "timeForQuestion";
-        timeForQuestion.innerHTML = "&infin; минут на вопрос";     
-        
-        var endButton = document.createElement('button');
-        endButton.classList.add('btn');
-        endButton.classList.add('btn-outline-primary');
-        endButton.classList.add('btn-block');
-        endButton.setAttribute('onclick', 'openPublish()');
-        endButton.innerHTML = 'Закончить создание';
-
-        testData.append(questionsCount);
-        testData.append(allBalls);
-        testData.append(timeForQuestion);
-        testData.append(endButton);
-
-        $('#questionsList').sortable({
-            update: function(event, ui) {
-                changeOrderOfQuestionNumbers();
-            }
-        });
+        openQuestionStep(await response.text());
     } else {
         if (response.status === 422) {
             var json = await response.json();
             printErrors(json);
         } else {
             console.log(response.status);
+            printErrorMessage('Ой... Что-то пошло нет так:(');
         }
     }
+}
+
+function openQuestionStep(data) {
+    registerInfo.remove();
+
+    var questionPopup = document.getElementById('questionPopup').innerHTML;
+    var oneAnswer = document.createElement('div');
+    oneAnswer.id = "answers";
+    oneAnswer.innerHTML = document.getElementById('oneAnswerPopup').innerHTML;
+
+    var question = document.createElement('div');
+    question.id = 'questionBlock';
+    question.innerHTML = questionPopup;
+    question.append(oneAnswer);
+    
+    var testInfo = document.getElementById('testInfo');
+    var questionBlock = testInfo.parentNode;
+
+    var nextStepButton = document.querySelector('#nextStepButton').cloneNode(true);
+    nextStepButton.setAttribute('onclick', 'addQuestion(this)');
+
+    testInfo.remove();
+    questionBlock.append(question);
+    questionBlock.append(nextStepButton);
+
+    var testId = document.createElement('input');
+    testId.id = 'testId';
+    testId.type = "hidden";
+    testId.value = data;
+    document.querySelector('body').append(testId);
+
+    var questionsCount = document.createElement('p');
+    questionsCount.id = "questionsCount";
+    questionsCount.innerHTML = "Всего вопросов: 0";
+
+    var allBalls = document.createElement('p');
+    allBalls.id = "allBalls";
+    allBalls.innerHTML = "Всего баллов: 0";
+
+    var timeForQuestion = document.createElement('p');
+    timeForQuestion.id = "timeForQuestion";
+    timeForQuestion.innerHTML = "&infin; минут на вопрос";     
+    
+    var endButton = document.createElement('button');
+    endButton.classList.add('btn');
+    endButton.classList.add('btn-outline-primary');
+    endButton.classList.add('btn-block');
+    endButton.setAttribute('onclick', 'openPublish()');
+    endButton.innerHTML = 'Закончить создание';
+
+    testData.append(questionsCount);
+    testData.append(allBalls);
+    testData.append(timeForQuestion);
+    testData.append(endButton);
+
+    $('#questionsList').sortable({
+        update: function(event, ui) {
+            changeOrderOfQuestionNumbers();
+        }
+    });
 }
 
 async function changeOrderOfQuestionNumbers() {
@@ -134,10 +138,9 @@ async function changeOrderOfQuestionNumbers() {
         body: formData
     });
 
-    if (response.ok) {
-        console.log('ok');
-    } else {
-        console.log('fuck');
+    if (!response.ok) {
+        console.log(response.status);
+        printErrorMessage('Ой... Что-то пошло нет так:(');
     }
 }
 
@@ -234,94 +237,6 @@ function closeMessage(){
     message.remove();
 }
 
-async function addQuestion(el) {
-    if (document.getElementById('errorsBlock')) {
-        document.querySelector('#errorsBlock').remove();
-    } 
-
-    var answerType = document.getElementById('answersTypes').querySelector('button.disabled').id;
-    
-    var errors = checkQuestionData(answerType);
-
-    if (errors.length != 0) {
-        printErrors(errors);
-    } else {
-        var question = document.getElementById('question').value;
-        var ballsCount = document.getElementById('ballsCount').value;
-
-        if (answerType == "oneAnswer" || answerType == "multipleAnswers") {
-            var answers = document.getElementById("answers").querySelectorAll("input[type='text']");
-            var answersValue = [];
-
-            for (var i = 0; i < answers.length; i++) {
-                answersValue[i] = answers[i].value;
-            }  
-
-            var jsonAnswers = JSON.stringify(answersValue);
-
-            if (answerType == "oneAnswer") {
-                var trueAnswersId = document.querySelector(".answer input[type='radio']:checked").getAttribute('answerid');
-            } else {
-                var trueAnswers = document.querySelectorAll(".answer input[type='checkbox']:checked");
-                var trueAnswersId = [];
-
-                for (var i = 0; i < trueAnswers.length; i++) {
-                    trueAnswersId[i] = trueAnswers[i].getAttribute('answerid');
-                }
-            }
-
-            var jsonTrueAnswers = JSON.stringify(trueAnswersId);
-        } else if (answerType == "numberAnswer") {
-            var answerNumber = parseFloat(numberAnswerField.value);
-            var error = parseFloat(errorAnswerField.value);
-            var answer = [answerNumber - error, answerNumber + error];
-            var jsonTrueAnswers = JSON.stringify(answer);
-            var jsonAnswers = null;
-        } else if (answerType == "textAnswer") {
-            var answer = textAnswerField.value;
-            var jsonTrueAnswers = JSON.stringify(answer);
-            var jsonAnswers = null;
-        }
-
-        var formData = new FormData();
-        formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
-        formData.append('question', question);
-        formData.append('balls', ballsCount);
-        formData.append('type', answerType);
-        formData.append('trueAnswer', jsonTrueAnswers);
-        formData.append('answer', jsonAnswers);
-        formData.append('testId', testId.value);
-
-        var response = await fetch('/addQuestion', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            //вынести в функцию?
-            document.querySelector('#question').value = "";
-            document.querySelector('#ballsCount').value = "";
-            changeAnswerType(oneAnswer);
-
-            responseData = await response.json();
-
-            questionsCount.innerHTML = "Всего вопросов: " + responseData['questionCount'];
-            allBalls.innerHTML = "Всего баллов: " + responseData['balls'];
-            timeForQuestion.innerHTML = responseData['time'] + " мин. на один вопрос";
-
-            //добавляю вопрос в список
-            addQuestionToList(responseData);
-        } else {
-            if (response.status === 422) {
-                var json = await response.json();
-                printErrors(json);
-            } else {
-                console.log(response.status);
-            }
-        }          
-    }
-}
-
 function addQuestionToList(data) {
     var template = questionForListTemplate.innerHTML;
     template = template.replace('[[cutQuestion]]', data['cutQuestion']);
@@ -414,6 +329,8 @@ async function openPublish(){
 }
 
 async function printQuestion(el) {
+    newTest.querySelector('h2').innerHTML = "Редактирование вопроса";
+
     if (document.querySelector('#editableQuestion')) {
         editableQuestion.style.opacity = 0.4;
         editableQuestion.id = "";
@@ -485,15 +402,15 @@ async function printQuestion(el) {
 
             changeAnswerType(numberAnswer);
 
-            numberAnswerField.value = (answer[1] - answer[0]) / 2 + answer[0];
-            errorAnswerField.value = (answer[1] - answer[0]) / 2;
+            numberAnswerField.value = answer[0];
+            errorAnswerField.value = answer[1];
         } else if (questionData['type'] == 'textAnswer') {
             changeAnswerType(textAnswer);
             textAnswerField.value = JSON.parse(questionData['trueAnswer']);
         }
-
     } else {
         console.log(response.status);
+        printErrorMessage('Ой... Что-то пошло нет так:(');
     }
     
     if (!document.querySelector('#newQuestionButton')) {
@@ -526,17 +443,12 @@ async function closeEdit() {
     });    
 
     if (response.ok) {
+        newTest.querySelector('h2').innerHTML = "Создание теста";
+        
         newQuestionButton.remove();
 
-        document.querySelector('#question').value = "";
-        ballsCount.value = "";
-        changeAnswerType(oneAnswer);
-
-        responseData = await response.json();
-
-        questionsCount.innerHTML = "Всего вопросов: " + responseData['questionCount'];
-        allBalls.innerHTML = "Всего баллов: " + responseData['balls'];
-        timeForQuestion.innerHTML = responseData['time'] + " мин. на один вопрос";  
+        clearQuestionBlock();
+        updateTestData(await response.json());
 
         nextStepButton.value = "Продолжить";
         nextStepButton.setAttribute('onclick', "addQuestion()");
@@ -546,6 +458,9 @@ async function closeEdit() {
         for (question of questionsList) {
             question.style.opacity = 0.4;
         }      
+    } else {
+        console.log(response.status);
+        printErrorMessage('Ой... Что-то пошло не так :(');
     }
 }
 
@@ -554,58 +469,13 @@ async function updateQuestion() {
         document.querySelector('#errorsBlock').remove();
     } 
 
-    var errors = checkQuestionData(answerType);
+    var errors = checkQuestionData(document.getElementById('answersTypes').querySelector('button.disabled').id);
 
     if (errors.length != 0) {
         printErrors(errors);
     } else {
-        var question = document.getElementById('question').value;
-        var ballsCount = document.getElementById('ballsCount').value;
-        var answerType = document.getElementById('answersTypes').querySelector('button.disabled').id;
-
-        if (answerType == "oneAnswer" || answerType == "multipleAnswers") {
-            var answers = document.getElementById("answers").querySelectorAll("input[type='text']");
-            var answersValue = [];
-
-            for (var i = 0; i < answers.length; i++) {
-                answersValue[i] = answers[i].value;
-            }  
-
-            var jsonAnswers = JSON.stringify(answersValue);
-
-            if (answerType == "oneAnswer") {
-                var trueAnswersId = document.querySelector(".answer input[type='radio']:checked").getAttribute('answerid');
-            } else {
-                var trueAnswers = document.querySelectorAll(".answer input[type='checkbox']:checked");
-                var trueAnswersId = [];
-
-                for (var i = 0; i < trueAnswers.length; i++) {
-                    trueAnswersId[i] = trueAnswers[i].getAttribute('answerid');
-                }
-            }
-
-            var jsonTrueAnswers = JSON.stringify(trueAnswersId);
-        } else if (answerType == "numberAnswer") {
-            var answerNumber = parseFloat(numberAnswerField.value);
-            var error = parseFloat(errorAnswerField.value);
-            var answer = [answerNumber - error, answerNumber + error];
-            var jsonTrueAnswers = JSON.stringify(answer);
-            var jsonAnswers = null;
-        } else if (answerType == "textAnswer") {
-            var answer = textAnswerField.value;
-            var jsonTrueAnswers = JSON.stringify(answer);
-            var jsonAnswers = null;
-        }
-
-        var formData = new FormData();
-        formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+        var formData = getDataForQuestionsChange();   
         formData.append('id', editableQuestion.getAttribute('questionid'));
-        formData.append('question', question);
-        formData.append('balls', ballsCount);
-        formData.append('type', answerType);
-        formData.append('trueAnswer', jsonTrueAnswers);
-        formData.append('answer', jsonAnswers);
-        formData.append('testId', testId.value);
 
         var response = await fetch('/updateQuestion', {
             method: 'POST',
@@ -613,19 +483,17 @@ async function updateQuestion() {
         });
 
         if (response.ok) {
-            document.querySelector('#question').value = "";
-            document.querySelector('#ballsCount').value = "";
-            changeAnswerType(oneAnswer);
+            newTest.querySelector('h2').innerHTML = "Создание теста";
+
+            clearQuestionBlock();
+
+            var responseData = await response.json();
+
+            updateTestData(responseData);
 
             newQuestionButton.remove();
             nextStepButton.setAttribute('onclick', 'addQuestion(this)');
             nextStepButton.value = "Продолжить";
-
-            responseData = await response.json();
-
-            questionsCount.innerHTML = "Всего вопросов: " + responseData['questionCount'];
-            allBalls.innerHTML = "Всего баллов: " + responseData['balls'];
-            timeForQuestion.innerHTML = responseData['time'] + " мин. на один вопрос";
             
             editableQuestion.querySelector('.questionText').innerHTML = responseData['cutQuestion'];
             editableQuestion.querySelector('.questionText').setAttribute('title', responseData['fullQuestion']);
@@ -640,7 +508,106 @@ async function updateQuestion() {
                 printErrors(json);
             } else {
                 console.log(response.status);
+                printErrorMessage('Ой... Что-то пошло нет так:(');
             }
         }          
     }
+}
+
+async function addQuestion(el) {
+    if (document.getElementById('errorsBlock')) {
+        document.querySelector('#errorsBlock').remove();
+    } 
+    
+    var errors = checkQuestionData(document.getElementById('answersTypes').querySelector('button.disabled').id);
+
+    if (errors.length != 0) {
+        printErrors(errors);
+    } else {
+        var formData = getDataForQuestionsChange();    
+
+        var response = await fetch('/addQuestion', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            var responseData = await response.json();
+
+            clearQuestionBlock();
+            updateTestData(responseData);
+            addQuestionToList(responseData);
+        } else {
+            if (response.status === 422) {
+                var json = await response.json();
+                printErrors(json);
+            } else {
+                console.log(response.status);
+                printErrorMessage('Ой... Что-то пошло нет так:(');
+            }
+        }          
+    }
+}
+
+function getDataForQuestionsChange() {
+    var question = document.getElementById('question').value;
+    var ballsCount = document.getElementById('ballsCount').value;
+    var answerType = document.getElementById('answersTypes').querySelector('button.disabled').id;
+
+    if (answerType == "oneAnswer" || answerType == "multipleAnswers") {
+        var answers = document.getElementById("answers").querySelectorAll("input[type='text']");
+        var answersValue = [];
+
+        for (var i = 0; i < answers.length; i++) {
+            answersValue[i] = answers[i].value;
+        }  
+
+        var jsonAnswers = JSON.stringify(answersValue);
+
+        if (answerType == "oneAnswer") {
+            var trueAnswersId = document.querySelector(".answer input[type='radio']:checked").getAttribute('answerid');
+        } else {
+            var trueAnswers = document.querySelectorAll(".answer input[type='checkbox']:checked");
+            var trueAnswersId = [];
+
+            for (var i = 0; i < trueAnswers.length; i++) {
+                trueAnswersId[i] = trueAnswers[i].getAttribute('answerid');
+            }
+        }
+
+        var jsonTrueAnswers = JSON.stringify(trueAnswersId);
+    } else if (answerType == "numberAnswer") {
+        var answerNumber = parseFloat(numberAnswerField.value);
+        var error = parseFloat(errorAnswerField.value);
+        var answer = [answerNumber, error];
+        var jsonTrueAnswers = JSON.stringify(answer);
+        var jsonAnswers = null;
+    } else if (answerType == "textAnswer") {
+        var answer = textAnswerField.value;
+        var jsonTrueAnswers = JSON.stringify(answer);
+        var jsonAnswers = null;
+    }
+
+    var formData = new FormData();
+    formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+    formData.append('question', question);
+    formData.append('balls', ballsCount);
+    formData.append('type', answerType);
+    formData.append('trueAnswer', jsonTrueAnswers);
+    formData.append('answer', jsonAnswers);
+    formData.append('testId', testId.value);
+
+    return formData;
+}
+
+function clearQuestionBlock() {
+    document.querySelector('#question').value = "";
+    document.querySelector('#ballsCount').value = "";
+    changeAnswerType(oneAnswer);    
+}
+
+function updateTestData(data) {
+    questionsCount.innerHTML = "Всего вопросов: " + data['questionCount'];
+    allBalls.innerHTML = "Всего баллов: " + data['balls'];
+    timeForQuestion.innerHTML = data['time'] + " мин. на один вопрос";    
 }
