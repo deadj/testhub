@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Test;
 use App\Models\Question;
+use App\Models\Tag;
 use Validator;
 
 class NewTestController extends Controller
@@ -16,6 +17,7 @@ class NewTestController extends Controller
     {
         $this->question = new Question();
         $this->test = new Test();
+        $this->tag = new Tag();
     }
 
     public function print()
@@ -32,28 +34,32 @@ class NewTestController extends Controller
         } else {
             $test = new Test();
 
-            $this->test->name              = $request->input('testName');
-            $this->test->tags              = $request->input('tags');
-            $this->test->foreword          = $request->input('testForeword');
-            $this->test->minBalls          = $request->input('minBalls');
+            $this->test->name              = $request->testName;
+            $this->test->tags              = $request->tags;
+            $this->test->foreword          = $request->testForeword;
+            $this->test->minBalls          = $request->minBalls;
             $this->test->maxBalls          = 0;
-            $this->test->minutesLimit      = $request->input('timeLimit');
-            $this->test->showWrongAnswers  = $request->input('showWrongAnswers');
-            $this->test->publicResults     = $request->input('publicResults');
+            $this->test->minutesLimit      = $request->timeLimit;
+            $this->test->showWrongAnswers  = $request->showWrongAnswers;
+            $this->test->publicResults     = $request->publicResults;
 
-            if ($request->input('showWrongAnswers')) {
+            if ($request->showWrongAnswers) {
                 $this->test->showWrongAnswers = 1;
             } else {
                 $this->test->showWrongAnswers = 0;
             }
 
-            if ($request->input('publicResults')) {
+            if ($request->publicResults) {
                 $this->test->publicResults = 1;
             } else {
                 $this->test->publicResults = 0;
             }
 
-            $this->test->save();      
+            $this->test->save();
+
+            if ($request->has('tags')) {
+                $this->addTags($request->tags);
+            } 
 
             return $this->test->id;     
         }
@@ -66,14 +72,14 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
-            $testId = $request->input('testId');
+            $testId = $request->testId;
 
             $this->question->testId     = $testId;
-            $this->question->questions  = $request->input('question');
-            $this->question->balls      = $request->input('balls');
-            $this->question->type       = $request->input('type');
-            $this->question->answer     = $request->input('answer');
-            $this->question->trueAnswer = $request->input('trueAnswer');
+            $this->question->questions  = $request->question;
+            $this->question->balls      = $request->balls;
+            $this->question->type       = $request->type;
+            $this->question->answer     = $request->answer;
+            $this->question->trueAnswer = $request->trueAnswer;
             $this->question->number     = $this->question->where('testId', $testId)->count() + 1;
 
             $this->question->save();
@@ -114,7 +120,7 @@ class NewTestController extends Controller
 
     public function getQuestion(Request $request): string
     {
-        return json_encode($this->question->find($request->input('id')));
+        return json_encode($this->question->find($request->id));
     }
 
     public function updateQuestion(Request $request): array
@@ -124,19 +130,19 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
-            $question = $this->question->where('id', $request->input('id'));
+            $question = $this->question->where('id', $request->id);
 
             $question->update([
-                'questions'  => $request->input('question'),
-                'balls'      => $request->input('balls'),
-                'type'       => $request->input('type'),
-                'answer'     => $request->input('answer'),
-                'trueAnswer' => $request->input('trueAnswer')
+                'questions'  => $request->question,
+                'balls'      => $request->balls,
+                'type'       => $request->type,
+                'answer'     => $request->answer,
+                'trueAnswer' => $request->trueAnswer
             ]);
 
             
-            $trueAnswer = $this->getTrueAnswer($request->input('id'));
-            $question = $this->question->find($request->input('id'));
+            $trueAnswer = $this->getTrueAnswer($request->id);
+            $question = $this->question->find($request->id);
 
             $questionInfo = [
                 'cutQuestion'      => mb_substr($question->questions, 0, 20) . "...",
@@ -146,7 +152,7 @@ class NewTestController extends Controller
                 'balls'            => $question->balls
             ];
 
-            $testInfo = $this->getTestInfo($request->input('testId'));
+            $testInfo = $this->getTestInfo($request->testId);
             
             $returnArray = $testInfo + $questionInfo;
             return $returnArray;
@@ -155,7 +161,32 @@ class NewTestController extends Controller
 
     public function getTestInfoToView(Request $request): array
     {
-        return $this->getTestInfo($request->input('testId'));
+        return $this->getTestInfo($request->testId);
+    }
+
+    public function getTags()
+    {
+        $tagsObjects = $this->tag->get();
+        $tags = [];
+        
+        foreach ($tagsObjects as $tag) {
+            $tags[] = $tag->tag;
+        }
+
+        return $tags;
+    }
+
+    private function addTags(string $tags): void
+    {   
+        $tags = preg_split('/,[ ]?/ui', mb_strtolower($tags), 0, PREG_SPLIT_NO_EMPTY);
+        
+        foreach ($tags as $tag) {
+            if ($this->tag->where('tag', $tag)->doesntExist()) {
+                $newTag = new Tag();
+                $newTag->tag = trim($tag);
+                $newTag->save();
+            }
+        }
     }
 
     private function getTestInfo(int $testId): array
@@ -174,7 +205,7 @@ class NewTestController extends Controller
             'questionCount' => $questionCount,
             'balls' => $balls,
             'time' => $time
-        ] ;
+        ];
     }
 
     private function getTrueAnswer(int $id)
@@ -206,10 +237,12 @@ class NewTestController extends Controller
         return Validator::make($request->all(), [
             'testName' => 'required',
             'minBalls' => 'required|numeric|min:0',
+            'tags' => 'not_regex:/[^\w\d\s,-]/ui'
         ],[
             'testName.required' => 'Введите название',
             'minBalls.required' => 'Введите минимальный балл',  
-            'minBalls.min' => 'Минимальный балл должен быть не меньше 0',         
+            'minBalls.min' => 'Минимальный балл должен быть не меньше 0',   
+            'tags.not_regex' => 'Теги могут включать буквы, цифвы, пробелы, запятые и дефис'      
         ]);
     }
 

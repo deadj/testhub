@@ -14,10 +14,16 @@ async function addTest(e) {
     } 
 
     var testName = document.querySelector('#testName').value;
-    var tags = document.querySelector('#tags').value;
     var testForeword = document.querySelector('#testForeword').value;
-    var passingScore = Number(document.querySelector('#passingScore').value);
+    var minBalls = Number(document.querySelector('#passingScore').value);
     var timeLimit = document.querySelector('#timeLimit').value;
+    var tags = document.querySelector('#tags').value;
+
+    var errors = checkTestData(testName, tags, minBalls);
+    if (errors.length != 0) {
+        printErrors(errors);
+        return;
+    }
 
     if (document.querySelector('#showWrongAnswers').checked) {
         var showWrongAnswers = true;
@@ -34,12 +40,15 @@ async function addTest(e) {
     var formData = new FormData();
     formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
     formData.append('testName', testName);
-    formData.append('tags', tags);
     formData.append('testForeword', testForeword);
-    formData.append('minBalls', passingScore);
+    formData.append('minBalls', minBalls);
     formData.append('timeLimit', timeLimit);
     formData.append('showWrongAnswers', showWrongAnswers);
-    formData.append('publicResults', publicResults);    
+    formData.append('publicResults', publicResults);
+
+    if (tags != "") {
+        formData.append('tags', tags);    
+    }
 
     var response = await fetch('/addTest', {
         method: 'POST',
@@ -57,6 +66,25 @@ async function addTest(e) {
             printErrorMessage('Ой... Что-то пошло нет так:(');
         }
     }
+}
+
+function checkTestData(name, tags, balls) {
+    var errors = [];
+
+    if (name == "") {
+        errors.push("Введите название");
+    }
+
+    if (balls < 0 || balls == "") {
+        errors.push("Введите минимальный балл")
+    }
+
+    var regexp = /[^\w\d\sа-яё,-]/iu;
+    if (regexp.test(tags)) {
+        errors.push("Теги могут включать буквы, цифвы, пробелы, запятые и дефис");
+    }
+
+    return errors;
 }
 
 function openQuestionStep(data) {
@@ -254,7 +282,6 @@ function addQuestionToList(data) {
 }
 
 function checkQuestionData(answerType){
-
     var errors = [];
 
     if (document.querySelector('#question').value == "") {
@@ -264,7 +291,6 @@ function checkQuestionData(answerType){
     if (ballsCount.value == "") {
         errors.push("Введите количество баллов");
     }
-
 
     if (answerType == "oneAnswer") {
         if (!document.querySelectorAll(".answer input[type='radio']:checked").length) {
@@ -611,3 +637,55 @@ function updateTestData(data) {
     allBalls.innerHTML = "Всего баллов: " + data['balls'];
     timeForQuestion.innerHTML = data['time'] + " мин. на один вопрос";    
 }
+
+$(function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/getTags', false);
+
+    try {
+        xhr.send();
+        var availableTags = JSON.parse(xhr.response);
+    } catch {
+        console.log('error');
+    }
+
+    function split( val ) {
+        return val.split( /,\s*/ );
+    }
+
+    function extractLast( term ) {
+        return split( term ).pop();
+    }
+ 
+    $( "#tags" )
+      // don't navigate away from the field on tab when selecting an item
+        .on( "keydown", function( event ) {
+        if ( event.keyCode === $.ui.keyCode.TAB &&
+            $( this ).autocomplete( "instance" ).menu.active ) {
+                event.preventDefault();
+            }
+        })
+        .autocomplete({
+        minLength: 0,
+        source: function( request, response ) {
+          // delegate back to autocomplete, but extract the last term
+          response( $.ui.autocomplete.filter(
+            availableTags, extractLast( request.term ) ) );
+        },
+        focus: function() {
+          // prevent value inserted on focus
+          return false;
+        },
+        select: function( event, ui ) {
+          var terms = split( this.value );
+          // remove the current input
+          terms.pop();
+          // add the selected item
+          terms.push( ui.item.value );
+          // add placeholder to get the comma-and-space at the end
+          terms.push( "" );
+          this.value = terms.join( ", " );
+          return false;
+        }
+    });
+});

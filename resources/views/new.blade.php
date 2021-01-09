@@ -16,7 +16,7 @@
                         <input class="form-control" type="text" id="testName">		
                     </div>
                     <div class="form-group">
-                        <label for="tags">Теги</label>
+                        <label for="tags">Теги <span class="text-secondary" id="tagsDemands">могут включать буквы, цифвы, пробелы, запятые и дефис</span></label>
                         <input class="form-control" type="text" id="tags">		
                     </div>
                     <div class="form-group">

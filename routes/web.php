@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'HomeController@print');
 Route::get('/new', 'NewTestController@print');
+Route::get('/getTags', 'NewTestController@getTags');
 Route::post('/addTest', 'NewTestController@addTest');
 Route::post('/addQuestion', 'NewTestController@addQuestion');
 Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQuestionNumbers');
