@@ -17,7 +17,7 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-9">
-				<div class="container mt-3">
+<!-- 				<div class="container mt-3">
 					<div class="row">
 						<div class="col-md-6">
 							<h3 class="testName mb-0">Тест по арифметике</h3>
@@ -106,7 +106,7 @@
 							<a class="btn btn-outline-primary" href="">Перейти</a>
 						</div>
 					</div>
-				</div>
+				</div> -->
 				<div class="container mt-3">
 					<div class="row">
 						<div class="col-md-6">

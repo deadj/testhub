@@ -32,34 +32,31 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
-            $test = new Test();
-
             $this->test->name              = $request->testName;
-            $this->test->tags              = $request->tags;
             $this->test->foreword          = $request->testForeword;
             $this->test->minBalls          = $request->minBalls;
             $this->test->maxBalls          = 0;
             $this->test->minutesLimit      = $request->timeLimit;
-            $this->test->showWrongAnswers  = $request->showWrongAnswers;
-            $this->test->publicResults     = $request->publicResults;
 
-            if ($request->showWrongAnswers) {
+            if ($request->has('showWrongAnswers')) {
                 $this->test->showWrongAnswers = 1;
             } else {
                 $this->test->showWrongAnswers = 0;
             }
 
-            if ($request->publicResults) {
+            if ($request->has('publicResults')) {
                 $this->test->publicResults = 1;
             } else {
                 $this->test->publicResults = 0;
             }
 
-            $this->test->save();
-
             if ($request->has('tags')) {
-                $this->addTags($request->tags);
+                $tags = preg_split('/,[ ]?/ui', mb_strtolower($request->tags), 0, PREG_SPLIT_NO_EMPTY);
+                $this->test->tags = json_encode($tags);
+                $this->addTags($tags);
             } 
+
+            $this->test->save();
 
             return $this->test->id;     
         }
@@ -176,10 +173,8 @@ class NewTestController extends Controller
         return $tags;
     }
 
-    private function addTags(string $tags): void
-    {   
-        $tags = preg_split('/,[ ]?/ui', mb_strtolower($tags), 0, PREG_SPLIT_NO_EMPTY);
-        
+    private function addTags(array $tags): void
+    {           
         foreach ($tags as $tag) {
             if ($this->tag->where('tag', $tag)->doesntExist()) {
                 $newTag = new Tag();

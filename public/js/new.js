@@ -25,26 +25,20 @@ async function addTest(e) {
         return;
     }
 
-    if (document.querySelector('#showWrongAnswers').checked) {
-        var showWrongAnswers = true;
-    } else {
-        var showWrongAnswers = false;
-    }
-
-    if (document.querySelector('#publicResults').checked) {
-        var publicResults = true;
-    } else {
-        var publicResults = false;
-    }
-
     var formData = new FormData();
     formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
     formData.append('testName', testName);
     formData.append('testForeword', testForeword);
     formData.append('minBalls', minBalls);
     formData.append('timeLimit', timeLimit);
-    formData.append('showWrongAnswers', showWrongAnswers);
-    formData.append('publicResults', publicResults);
+    
+    if (document.querySelector('#showWrongAnswers').checked) {
+        formData.append('showWrongAnswers', true);
+    }
+
+    if (document.querySelector('#publicResults').checked) {
+        formData.append('publicResults', publicResults);
+    }    
 
     if (tags != "") {
         formData.append('tags', tags);    
