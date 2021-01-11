@@ -32,11 +32,13 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
-            $this->test->name              = $request->testName;
-            $this->test->foreword          = $request->testForeword;
-            $this->test->minBalls          = $request->minBalls;
-            $this->test->maxBalls          = 0;
-            $this->test->minutesLimit      = $request->timeLimit;
+            $this->test->name                = $request->testName;
+            $this->test->foreword            = $request->testForeword;
+            $this->test->minBalls            = $request->minBalls;
+            $this->test->minutesLimit        = $request->timeLimit;
+            $this->test->maxBalls            = 0;
+            $this->test->countOfParticipants = 0;
+            $this->test->countOfPassed       = 0;
 
             if ($request->has('showWrongAnswers')) {
                 $this->test->showWrongAnswers = 1;
@@ -54,7 +56,9 @@ class NewTestController extends Controller
                 $tags = preg_split('/,[ ]?/ui', mb_strtolower($request->tags), 0, PREG_SPLIT_NO_EMPTY);
                 $this->test->tags = json_encode($tags);
                 $this->addTags($tags);
-            } 
+            } else {
+                $this->test->tags = json_encode([]);
+            }
 
             $this->test->save();
 

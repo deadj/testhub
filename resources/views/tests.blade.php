@@ -17,10 +17,17 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-9">
+				<form class="container mb-5" method="GET" action="/tests">
+					<h2>Поиск тестов</h2>
+					<div class="form-group">
+						<input class="col-md-9" type="text" placeholder="Название или тег" name="search">
+						<input type="submit" class="col-md-2 btn btn-outline-primary btn-sm" value="Искать">				
+					</div>
+				</form>
 				<div class="container">
 					<div class="row">
 						<small class="col-md-6">Название</small>
-						<small class="col-md-3">Сдавало / прошло</small>
+						<small class="col-md-3">Прошло / сдавало</small>
 					</div>
 					<div class="row">
 						<div class="col-md-11 text-left">
@@ -48,10 +55,33 @@
 						</div>
 					</div>
 				@endforeach
-				<h5 class="ml-3 mt-5"><a href="/tests/1">Смотреть все тесты</a></h5>
+				<div class="container mt-5">
+					<div class="row">
+						<div class="col-md-7">
+							@if ($page > 1)
+								<a class="btn btn-light" href="/tests/{{ $page - 1 }}">Назад</a>
+							@endif
+							<select class="p-1" id="pageSelector">
+								@for ($i = 1; $i <= $pagesCount; $i++)
+									@if ($i == $page)
+										<option value="{{ $i }}" selected>{{ $i }}</option>
+									@else
+										<option value="{{ $i }}">{{ $i }}</option>
+									@endif
+								@endfor
+							</select>
+							@if ($page < $pagesCount)
+								<a class="btn btn-light" href="/tests/{{ $page + 1 }}">Далее</a>
+							@endif
+						</div>
+						<div class="col-md-4 mt-2 text-right">Найдено {{ $testsCount }} тестов</div>
+					</div>
+				</div>
 			</div>
 			@include('templates.aboutSite')
 		</div>
 	</div>
+
+	<script src="{{ URL::asset('js/tests.js') }}"></script>
 </body>
 </html>
