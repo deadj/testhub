@@ -20,7 +20,7 @@
 				<form class="container mb-5" method="GET" action="/tests">
 					<h2>Поиск тестов</h2>
 					<div class="form-group">
-						<input class="col-md-9" type="text" placeholder="Название или тег" name="search">
+						<input class="col-md-9" type="text" placeholder="Название или тег" name="search" value="{{ $search }}">
 						<input type="submit" class="col-md-2 btn btn-outline-primary btn-sm" value="Искать">				
 					</div>
 				</form>
@@ -59,7 +59,11 @@
 					<div class="row">
 						<div class="col-md-7">
 							@if ($page > 1)
-								<a class="btn btn-light" href="/tests/{{ $page - 1 }}">Назад</a>
+								@if ($search != "")
+									<a class="btn btn-light" href="/tests?page={{ $page - 1 }}&search={{ $search }}">Назад</a>
+								@else
+									<a class="btn btn-light" href="/tests?page={{ $page - 1 }}">Назад</a>
+								@endif
 							@endif
 							<select class="p-1" id="pageSelector">
 								@for ($i = 1; $i <= $pagesCount; $i++)
@@ -71,7 +75,11 @@
 								@endfor
 							</select>
 							@if ($page < $pagesCount)
-								<a class="btn btn-light" href="/tests/{{ $page + 1 }}">Далее</a>
+								@if ($search != "")
+									<a class="btn btn-light" href="/tests?page={{ $page + 1 }}&search={{ $search }}">Далее</a>
+								@else
+									<a class="btn btn-light" href="/tests?page={{ $page + 1 }}">Далее</a>
+								@endif
 							@endif
 						</div>
 						<div class="col-md-4 mt-2 text-right">Найдено {{ $testsCount }} тестов</div>

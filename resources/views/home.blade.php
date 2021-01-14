@@ -48,7 +48,7 @@
 						</div>
 					</div>
 				@endforeach
-				<h5 class="ml-3 mt-5"><a href="/tests/1">Смотреть все тесты</a></h5>
+				<h5 class="ml-3 mt-5"><a href="/tests">Смотреть все тесты</a></h5>
 			</div>
 			@include('templates.aboutSite')
 		</div>
