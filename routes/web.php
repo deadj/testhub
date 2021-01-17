@@ -17,6 +17,7 @@ Route::get('/', 'HomeController@print');
 Route::get('/new', 'NewTestController@print');
 Route::get('/getTags', 'NewTestController@getTags');
 Route::get('/tests', 'TestsController@printPage');
+Route::get('/{id}/preface', 'TestController@printPage');
 Route::post('/addTest', 'NewTestController@addTest');
 Route::post('/addQuestion', 'NewTestController@addQuestion');
 Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQuestionNumbers');

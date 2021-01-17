@@ -18,37 +18,23 @@
 		<div class="row">
 			<div class="col-md-9">
 				<div class="container">
-					<div class="row">
-						<small class="col-md-6">Название</small>
-						<small class="col-md-3">Сдавало / прошло</small>
-					</div>
-					<div class="row">
-						<div class="col-md-11 text-left">
-							<hr class="mt-2 mb-1">
-						</div>
-					</div>
+				<h1 class="mb-4">{{ $test->name }}</h1>
+				<p>{{ $test->foreword }}</p>
+				<p>
+					Количество вопросов - {{ $questionsCount }}. За которое можно набрать от 0 до {{ $test->maxBalls }} баллов.
+					@if ($test->minutesLimit != NULL)
+						На тест даётся {{ $test->minutesLimit }} минут.
+					@else 
+						Время прохождения не ограничено.
+					@endif
+				</p>
+				<p>
+					Тест сдало {{ $test->countOfParticipants }} ({{ $test->countOfParticipants / 100 * $test->countOfPassed }}%) из {{ $test->countOfParticipants }} участников.
+				</p>
+				<div class="text-center mt-5">
+					<a href="/{{ $test->id }}/quesionts" class="text-center btn btn-primary">Начать теста</a>
 				</div>
-				@foreach ($tests as $test)
-					<div class="container mt-3">
-						<div class="row">
-							<div class="col-md-6">
-								<h3 class="testName mb-0">{{ $test->name }}</h3>	
-								<small>
-									@foreach (json_decode($test->tags, true) as $tag)
-										<a class="mr-2" href=""> {{ $tag }}</a>
-									@endforeach
-								</small>
-							</div>
-							<div class="col-md-3">
-								<p>{{ $test->countOfPassed }} / {{ $test->countOfParticipants }}</p>
-							</div>
-							<div class="col-md-3">
-								<a class="btn btn-outline-primary" href="{{ $test->id }}/preface">Перейти</a>
-							</div>
-						</div>
-					</div>
-				@endforeach
-				<h5 class="ml-3 mt-5"><a href="/tests">Смотреть все тесты</a></h5>
+				</div>
 			</div>
 			@include('templates.aboutSite')
 		</div>
