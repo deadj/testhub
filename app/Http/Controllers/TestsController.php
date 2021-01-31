@@ -29,7 +29,7 @@ class TestsController extends Controller
         } else {
             $search = "";
             $testsCount = $test->count();
-            $page = $$this->getRealPage($testsCount, $page);
+            $page = $this->getRealPage($testsCount, $page);
             $tests = $test->orderBy('id', 'desc')->skip(($page - 1) * 10)->take(10)->get();
         }
 

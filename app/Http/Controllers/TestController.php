@@ -8,17 +8,33 @@ use App\Models\Question;
 
 class TestController extends Controller
 {
-	public function printPage(int $id)
+	public function printPrefacePage(int $id)
 	{
 		$test = new Test();
-		$queston = new Question();
+		$question = new Question();
 
 		$requiredTest = $test->find($id);
-		$questionsCount = $queston->where('testId', $id)->count();
+		$questionsCount = $question->where('testId', $id)->count();
+		$maxBalls = $question->where('testId', $id)->sum('balls');
 
-		return view('test', [
+		return view('testPreface', [
 			'test' => $requiredTest,
-			'questionsCount' => $questionsCount
+			'questionsCount' => $questionsCount,
+			'maxBalls' => $maxBalls
+		]);
+	}
+
+	public function printQuestionPage(int $id)
+	{
+		$test = new Test();
+		$test = $test->find($id);
+		
+		$question = new Question();
+		$requiredQuestion = $question->where('testId', $id)->orderBy('number')->first();
+		
+		return view('testQuestion', [
+			'test' => $test,
+			'question' => $requiredQuestion
 		]);
 	}
 }
