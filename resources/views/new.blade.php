@@ -63,7 +63,7 @@
             </div>
         </div>
     </div>
-    <!-- <footer style="height: 500px"></footer> -->
+
     <script type="text/x-template" id="oneAnswerPopup">
         <div class="container answer mt-2">
             <div class="row">

@@ -7,48 +7,60 @@
     </div>	
 	<div class="container">
 			<div class="col-md-12">
+				<input type="hidden" id="questionNumber" value="{{ $question->number }}">
+				<input type="hidden" id="questionId" value="{{ $question->id }}">
+				<input type="hidden" id="questionType" value="{{ $question->type }}">
+				<input type="hidden" id="testId" value="{{ $question->testId }}">
 				<h1 class="mb-4">{{ $test->name }}</h1>
 				@if ($test->minutesLimit != NULL)
 					<p>Осталось времени {{ $test->minutesLimit }}:00</p>
 				@endif
-				<p class="text-secondary">За ответ на этот вопрос даётся {{ $question->balls }} баллов</p>
-				<h3 class="mb-4">{{ $question->questions }}</h3>
-				@if ($question->type == "oneAnswer")
-					<p>Выберите один вариант ответа</p>
-					<ul style="list-style-type: none" class="pl-0">
-						@foreach (json_decode($question->answer, true) as $number => $answer)
-							<li>
-								<label>
-									<input id="answer" type="radio" name="answer" number="{{ $number }}">
-								{{ $answer }}
-								</label>
-							</li>
-						@endforeach
-					</ul>
-				@elseif ($question->type == "multipleAnswers")
-					<p>Выберите несколько вариантов ответа</p>
-					<ul style="list-style-type: none" class="pl-0">
-						@foreach (json_decode($question->answer, true) as $number => $answer)
-							<li>
-								<label>
-									<input id="answer" type="checkbox" name="answer" number="{{ $number }}">
-								{{ $answer }}
-								</label>
-							</li>
-						@endforeach
-					</ul>						
-				@elseif ($question->type == "textAnswer")
-					<p>Введите ответ</p>
-					<input class="col-md-10" id="answer" type="text" name="answer">
-				@elseif ($question->type == "numberAnswer")
-					<p>Введите число</p>
-					<input id="answer" type="number" name="answer">
-				@endif
+				<p id="questionsBalls" class="text-secondary">За ответ на этот вопрос даётся {{ $question->balls }} баллов</p>
+				<h5 id="questionText" class="mb-4">{{ $question->questions }}</h5>
+				<div id="answersBlock">
+					@if ($question->type == "oneAnswer")
+						<p>Выберите один вариант ответа</p>
+						<ul id="answer" style="list-style-type: none" class="pl-0">
+							@foreach (json_decode($question->answer, true) as $number => $answer)
+								<li>
+									<label>
+										<input type="radio" name="answer" class="mr-1">{{ $answer }}
+									</label>
+								</li>
+							@endforeach
+						</ul>
+					@elseif ($question->type == "multipleAnswers")
+						<p>Выберите ответ(ы)</p>
+						<ul id="answer" style="list-style-type: none" class="pl-0">
+							@foreach (json_decode($question->answer, true) as $number => $answer)
+								<li>
+									<label>
+										<input type="checkbox" name="answer" class="mr-1">{{ $answer }}
+									</label>
+								</li>
+							@endforeach
+						</ul>						
+					@elseif ($question->type == "textAnswer")
+						<p>Введите ответ</p>
+						<input class="col-md-10" id="answer" type="text" name="answer">
+					@elseif ($question->type == "numberAnswer")
+						<p>Введите число</p>
+						<input id="answer" type="number" name="answer">
+					@endif
+				</div>
 				<div class="mt-4">
 					<button type="button" class="btn btn-light text-">Вернуться</button>
-					<button type="button" class="btn btn-primary">Ответить</button>
+					<button type="button" class="btn btn-primary" onclick="setAnswer()">Ответить</button>
 				</div>
 			</div>
 		</div>
 	</div>
+
+    <script type="text/x-template" id="errorPopup">
+        <div class="alert alert-danger" role="alert">
+            [[message]]
+        </div>        
+    </script>
+
+	 <script src="{{ URL::asset('js/testQuestion.js') }}"></script>
 @endsection

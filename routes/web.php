@@ -25,3 +25,4 @@ Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQue
 Route::post('/getQuestion', 'NewTestController@getQuestion');
 Route::post('/updateQuestion', 'NewTestController@updateQuestion');
 Route::post('/getTestInfoToView', 'NewTestController@getTestInfoToView');
+Route::post('/addAnswer', 'TestController@addAnswer');
