@@ -7,6 +7,7 @@ use App\Models\Test;
 use App\Models\Question;
 use App\Models\Answer;
 use App\Models\User;
+use App\Models\Result;
 
 class TestController extends Controller
 {
@@ -55,24 +56,89 @@ class TestController extends Controller
 	public function addAnswer(Request $request)
 	{
 		$answer = new Answer();
+		$question = new Question();
+
 		$answer->userId = $request->cookie('userId');
 		$answer->questionId = $request->questionId;
 		$answer->testId = $request->testId;
 		$answer->value = $request->value;
-		$answer->save();
-
-		$question = new Question();
+		$answer->done = $this->checkAnswer(
+			$request->value, 
+			$question->find($request->questionId)->trueAnswer, 
+			$request->questionType
+		);
+		$answer->save(); 
+		
 		$questionsCount = $question->where('testId', $request->testId)->count();
 
 		if ($request->questionNumber < $questionsCount) {
 			$requiredQuestion = $question->where([
 				['testId', $request->testId],
 				['number', $request->questionNumber + 1]
-			])->get();
+			])->first();
 
 			return response($requiredQuestion);
 		} else {
-			//вывод финальной страницы
+			$result = new Result();
+			$answer = new Answer();
+			
+			$doneAnswers = $answer->where([
+				['userId', $request->cookie('userId')],
+				['testId', $request->testId],
+				['done', 1]
+			])->get();
+
+			$balls = 0;
+			foreach ($doneAnswers as $answer) {
+				$balls += $question->find($answer->questionId)->balls;
+			}
+
+			$result->testId = $request->testId;
+			$result->userId = $request->cookie('userId');
+			$result->balls = $balls;
+			$result->save();
+
+			return response()->json('lastQuestion');
+		}
+	}
+
+	public function printResultPage(Request $request, int $id)
+	{
+		$test = new Test();
+		$result = new Result();
+		
+		$responseTest = $test->find($id);
+		$responseResult = $result->where([
+			['testId', $id],
+			['userId', $request->cookie('userId')]
+		])->first();
+
+		return response()->view('testResult', [
+			'result' => $responseResult,
+			'test' => $responseTest
+		]);
+	}
+
+	private function checkAnswer(string $userAnswer, string $trueAnswer, string $type): bool
+	{
+		$userAnswer = json_decode($userAnswer, true);
+		$trueAnswer = json_decode($trueAnswer, true);
+
+		if ($type == "oneAnswer" || $type == "multipleAnswers" || $type == "textAnswer") {
+			if ($userAnswer == $trueAnswer) {
+				return true;
+			} else {
+				return false;
+			}
+		} elseif ($type == "numberAnswer") {
+			$minNum = $trueAnswer[0] - $trueAnswer[1];
+			$maxNum = $trueAnswer[0] + $trueAnswer[1];
+
+			if ($userAnswer >= $minNum && $userAnswer <= $maxNum) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 }

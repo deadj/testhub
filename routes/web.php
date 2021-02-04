@@ -19,6 +19,7 @@ Route::get('/getTags', 'NewTestController@getTags');
 Route::get('/tests', 'TestsController@printPage');
 Route::get('/{id}/preface', 'TestController@printPrefacePage');
 Route::get('/{id}/question', 'TestController@printQuestionPage');
+Route::get('/{id}/result', 'TestController@printResultPage');
 Route::post('/addTest', 'NewTestController@addTest');
 Route::post('/addQuestion', 'NewTestController@addQuestion');
 Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQuestionNumbers');

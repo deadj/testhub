@@ -6,7 +6,6 @@ async function setAnswer() {
 	formData.append('testId', testId.value);
     formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
 
-
 	if (questionType.value == "oneAnswer") {
 		var answers = document.querySelectorAll("input[name='answer']");
 		for (var i = 0; i < answers.length; i++) {
@@ -27,7 +26,7 @@ async function setAnswer() {
 
 		formData.append('value', JSON.stringify(value));
 	} else if (questionType.value == "textAnswer" || questionType.value == "numberAnswer") {
-		formData.append('value', JSON.stringify(answer.value));
+		formData.append('value', JSON.stringify(document.querySelector("input[name='answer']").value));
 	}
 
 	var response = await fetch('/addAnswer', {
@@ -36,24 +35,25 @@ async function setAnswer() {
 	});
 
 	if (response.ok) {
-		var newQuestion = await response.json();
-		newQuestion = newQuestion[0];
+		var response = await response.json();
 
-		// console.log(JSON.parse(newQuestion.answer));
+		if (response == "lastQuestion") {
+			document.location.href = '/' + testId.value + '/result';
+		}
 
-		questionNumber.value = newQuestion.number;
-		questionId.value = newQuestion.id;
-		questionType.value = newQuestion.type;
-		questionText.innerHTML = newQuestion.questions;
-		questionsBalls.innerHTML = "За ответ на этот вопрос даётся " + newQuestion.balls + " баллов";
+		questionNumber.value = response.number;
+		questionId.value = response.id;
+		questionType.value = response.type;
+		questionText.innerHTML = response.questions;
+		questionsBalls.innerHTML = "За ответ на этот вопрос даётся " + response.balls + " баллов";
 
-		if (newQuestion.type == "oneAnswer") {
-			printUlAnswers("radio", newQuestion.answer);
-		} else if (newQuestion.type == "multipleAnswers") {	
-			printUlAnswers("checkbox", newQuestion.answer);
-		} else if (newQuestion.type == "textAnswer") {
+		if (response.type == "oneAnswer") {
+			printUlAnswers("radio", response.answer);
+		} else if (response.type == "multipleAnswers") {	
+			printUlAnswers("checkbox", response.answer);
+		} else if (response.type == "textAnswer") {
 			printInputAnswer("text");
-		} else if (newQuestion.type == "numberAnswer") {
+		} else if (response.type == "numberAnswer") {
 			printInputAnswer("number");
 		}
 	} else {
@@ -97,9 +97,8 @@ function printUlAnswers(type, answers) {
 	answersBlock.append(ul);
 }
 
+//type = text or number
 function printInputAnswer(type) {
-	answersBlock.innerHTML = "";
-
 	var p = document.createElement('p');
 	var input = document.createElement('input');
 	input.id = "answer";
@@ -113,6 +112,7 @@ function printInputAnswer(type) {
 		input.classList.add('col-md-10');
 	}	
 
+	answersBlock.innerHTML = "";
 	answersBlock.append(p);
 	answersBlock.append(input);
 }

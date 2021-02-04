@@ -42,7 +42,7 @@
 						</ul>						
 					@elseif ($question->type == "textAnswer")
 						<p>Введите ответ</p>
-						<input class="col-md-10" id="answer" type="text" name="answer">
+						<input id="answer" type="text" name="answer" class="col-md-10">
 					@elseif ($question->type == "numberAnswer")
 						<p>Введите число</p>
 						<input id="answer" type="number" name="answer">

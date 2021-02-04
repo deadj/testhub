@@ -88,6 +88,7 @@ class NewTestController extends Controller
             $questionCount = $this->question->where('testId', $testId)->count();
             $balls = $this->question->where('testId', $testId)->get()->sum('balls');
             $time = Test::find($testId)->minutesLimit;
+            Test::where('id', $testId)->update(['maxBalls' => $balls]);
 
             if ($time == NULL) {
                 $time = "&#8734;";
