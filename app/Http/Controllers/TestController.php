@@ -11,10 +11,18 @@ use App\Models\Result;
 
 class TestController extends Controller
 {
-	public function printPrefacePage(int $id)
+	public function printPrefacePage(Request $request, int $id)
 	{
 		$test = new Test();
 		$question = new Question();
+
+		if ($request->cookie('userId') && Result::where([
+				['testId', $id],
+				['userId', $request->cookie('userId')]
+			])->count() > 0) {
+
+			return redirect("$id/result");
+		}
 
 		$requiredTest = $test->find($id);
 		$questionsCount = $question->where('testId', $id)->count();
@@ -46,10 +54,18 @@ class TestController extends Controller
 				])
 				->cookie('userId', $user->id, 60 * 24 * 30 * 12);
 		} else {
-			return response()->view('testQuestion', [
-				'test' => $test,
-				'question' => $requiredQuestion
-			]);
+			if (Result::where([
+					['testId', $id],
+					['userId', $request->cookie('userId')]
+				])->count() > 0) {
+
+				return redirect("$id/result");
+			} else {
+				return response()->view('testQuestion', [
+					'test' => $test,
+					'question' => $requiredQuestion
+				]);
+			}
 		}
 	}
 
@@ -104,6 +120,15 @@ class TestController extends Controller
 
 	public function printResultPage(Request $request, int $id)
 	{
+		if (!$request->cookie('userId') || 
+			Result::where([
+				['userId', $request->cookie('userId')],
+				['testId', $id]
+			])->count() == 0) {
+
+			return redirect("$id/preface");
+		}
+
 		$test = new Test();
 		$result = new Result();
 		
@@ -117,6 +142,11 @@ class TestController extends Controller
 			'result' => $responseResult,
 			'test' => $responseTest
 		]);
+	}
+
+	public function setUserName(Request $request): void
+	{
+		User::find($request->cookie('userId'))->update(['name' => $request->userName]);
 	}
 
 	private function checkAnswer(string $userAnswer, string $trueAnswer, string $type): bool

@@ -6,6 +6,10 @@ async function setAnswer() {
 	formData.append('testId', testId.value);
     formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
 
+    if (!checkAnswer(questionType.value)) {
+    	return;
+    }
+
 	if (questionType.value == "oneAnswer") {
 		var answers = document.querySelectorAll("input[name='answer']");
 		for (var i = 0; i < answers.length; i++) {
@@ -56,6 +60,68 @@ async function setAnswer() {
 		} else if (response.type == "numberAnswer") {
 			printInputAnswer("number");
 		}
+	} else {
+		printErrorMessage('Ой... Что-то пошло нет так:(');
+	}
+}
+
+function checkAnswer(questionType) {
+	var error = false;
+
+	if (questionType == "oneAnswer" || questionType == "multipleAnswers" ) {
+		var answers = document.querySelectorAll('#answer input');
+		var checkedAnswer = false;
+		
+		for (answer of answers) {
+			if (answer.checked) {
+				var checkedAnswer = true;
+				break;
+			}
+		}
+
+		if (!checkedAnswer) {
+			error = true;
+		}
+	} else if (
+		(questionType == "numberAnswer" || questionType == "textAnswer") && 
+		document.querySelector('#answer').value == ""
+	) {
+		error = true;
+		document.querySelector('#answer').classList.add('border');
+		document.querySelector('#answer').classList.add('border-danger');
+	}
+
+	if (error) {
+		printErrorMessage('Вы забыли ответить');
+		return false;
+	} else {
+		return true;
+	}
+}
+
+async function checkTime() {
+	
+}
+
+async function setUserName() {
+	if (userName.value == "") {
+		document.querySelector('#userNameField input').classList.add('border');
+		document.querySelector('#userNameField input').classList.add('border-danger');
+
+		return;
+	}
+
+	formData = new FormData();
+	formData.append('userName', userName.value);
+	formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+
+	var response = await fetch('/setUserName', {
+		method: 'POST',
+		body: formData
+	});
+
+	if (response.ok) {
+		userNameField.innerHTML = "<h5>Спасибо</h5>";
 	} else {
 		printErrorMessage('Ой... Что-то пошло нет так:(');
 	}
