@@ -1,13 +1,28 @@
 async function setAnswer() {
+    if (!checkAnswer(questionType.value)) {
+    	return;
+    }
+
 	var formData = new FormData();
 	formData.append('questionId', questionId.value);
-	formData.append('questionNumber', questionNumber.value);
 	formData.append('questionType', questionType.value);
 	formData.append('testId', testId.value);
     formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
 
-    if (!checkAnswer(questionType.value)) {
-    	return;
+    var numbers = document.querySelectorAll('.number');
+    var selectedNumber = document.querySelector('.selectedNumber p').innerHTML;
+
+    if (selectedNumber != numbers.length) {
+	    for (var i = 0; i < numbers.length; i++) {
+	    	if (!numbers[i].classList.contains('bg-primary') && 
+	    		numbers[i].querySelector('p').innerHTML != selectedNumber
+	    	) {
+	    		formData.append('questionNumber', numbers[i].querySelector('p').innerHTML);
+	    		break;
+	    	}	
+	    }
+    } else {
+    	formData.append('questionNumber', selectedNumber + 1);
     }
 
 	if (questionType.value == "oneAnswer") {
@@ -43,23 +58,24 @@ async function setAnswer() {
 
 		if (response == "lastQuestion") {
 			document.location.href = '/' + testId.value + '/result';
+			return;
 		}
 
-		questionNumber.value = response.number;
-		questionId.value = response.id;
-		questionType.value = response.type;
-		questionText.innerHTML = response.questions;
-		questionsBalls.innerHTML = "За ответ на этот вопрос даётся " + response.balls + " баллов";
+		updateQuestion(response);
 
-		if (response.type == "oneAnswer") {
-			printUlAnswers("radio", response.answer);
-		} else if (response.type == "multipleAnswers") {	
-			printUlAnswers("checkbox", response.answer);
-		} else if (response.type == "textAnswer") {
-			printInputAnswer("text");
-		} else if (response.type == "numberAnswer") {
-			printInputAnswer("number");
-		}
+		var selector = ".number p[questionid='" + response['id'] + "']"; 
+		var nextNumber = document.querySelector(selector);
+		var selectedNumber = document.querySelector('.selectedNumber');
+
+		nextNumber.parentNode.removeAttribute('onclick');
+		nextNumber.parentNode.classList.add('selectedNumber');
+		selectedNumber.setAttribute('onclick', "openQuestion(this)");
+		selectedNumber.classList.remove('selectedNumber');
+		selectedNumber.classList.remove('bg-light');
+		selectedNumber.classList.add('bg-primary');
+		selectedNumber.classList.add('text-white');
+
+		changeButtonText();
 	} else {
 		printErrorMessage('Ой... Что-то пошло нет так:(');
 	}
@@ -99,11 +115,37 @@ function checkAnswer(questionType) {
 	}
 }
 
-async function openQuestion(el) {
-	var requestNumber = el.querySelector('p').getAttribute('number');
+function updateQuestion(response) {
+	questionNumber.value = response.number;
+	questionId.value = response.id;
+	questionType.value = response.type;
+	questionText.innerHTML = response.questions;
+	questionsBalls.innerHTML = "За ответ на этот вопрос даётся " + response.balls + " баллов";
 
+	if (response.type == "oneAnswer") {
+		printUlAnswers("radio", response.answer);
+	} else if (response.type == "multipleAnswers") {	
+		printUlAnswers("checkbox", response.answer);
+	} else if (response.type == "textAnswer") {
+		printInputAnswer("text");
+	} else if (response.type == "numberAnswer") {
+		printInputAnswer("number");
+	}
+}
+
+function changeButtonText() {
+	var numbers = document.querySelectorAll('.number');
+
+	if (numbers[numbers.length - 1].classList.contains('selectedNumber')) {
+		replyButton.innerHTML = "Завершить тест";
+	} else {
+		replyButton.innerHTML = "Ответить";
+	}
+}
+
+async function openQuestion(el) {
 	var formData = new FormData();
-	formData.append('number', requestNumber);
+	formData.append('questionId', el.querySelector('p').getAttribute('questionid'));
 	formData.append('testId', testId.value);
 	formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
 
@@ -120,22 +162,26 @@ async function openQuestion(el) {
 		el.removeAttribute('onclick', "openQuestion(this)");
 
 		var response = await response.json();
+		updateQuestion(response['question']);
 
-		questionNumber.value = response.number;
-		questionId.value = response.id;
-		questionType.value = response.type;
-		questionText.innerHTML = response.questions;
-		questionsBalls.innerHTML = "За ответ на этот вопрос даётся " + response.balls + " баллов";
+		if (response.hasOwnProperty("answer")) {
+			var userAnswer = JSON.parse(response['answer']);
 
-		if (response.type == "oneAnswer") {
-			printUlAnswers("radio", response.answer);
-		} else if (response.type == "multipleAnswers") {	
-			printUlAnswers("checkbox", response.answer);
-		} else if (response.type == "textAnswer") {
-			printInputAnswer("text");
-		} else if (response.type == "numberAnswer") {
-			printInputAnswer("number");
+			if (questionType.value == "oneAnswer") {
+				var answers = document.querySelectorAll('#answer input');
+				answers[userAnswer].checked = true;
+			} else if (questionType.value == "multipleAnswers") {
+				var answers = document.querySelectorAll('#answer input');
+
+				for (var i = 0; i < userAnswer.length; i++) {
+					answers[userAnswer[i]].checked = true;
+				}
+			} else if (questionType.value == "textAnswer" || questionType.value == "numberAnswer") {
+				document.querySelector('#answer').value = userAnswer;
+			} 
 		}
+
+		changeButtonText();
 	} else {
 		printErrorMessage('Ой... Что-то пошло нет так:(');
 	}

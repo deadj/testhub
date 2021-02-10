@@ -80,7 +80,7 @@ class NewTestController extends Controller
             $this->question->balls      = $request->balls;
             $this->question->type       = $request->type;
             $this->question->answer     = $request->answer;
-            $this->question->trueAnswer = $request->trueAnswer;
+            $this->question->trueAnswer = mb_strtolower($request->trueAnswer);
             $this->question->number     = $this->question->where('testId', $testId)->count() + 1;
 
             $this->question->save();

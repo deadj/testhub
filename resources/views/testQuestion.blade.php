@@ -64,18 +64,17 @@
 					@endif
 				</div>
 				<div class="mt-4">
-					<button type="button" class="btn btn-light text-">Вернуться</button>
-					<button type="button" class="btn btn-primary" onclick="setAnswer()">Ответить</button>
+					<button id="replyButton" type="button" class="btn btn-primary" onclick="setAnswer()">Ответить</button>
 				</div>
 			</div>
 			<div class="col-md-1">
 				<ul class="p-0">
 					<li class="selectedNumber number border border-primary p-1 mb-1 rounded bg-light list-group-item text-center">
-						<p class="mb-0" number="1">1</p>
+						<p class="mb-0" questionid="{{ $questionsList[0]->id }}">1</p>
 					</li>
 					@for ($i = 1; $i < $questionsCount; $i++)
 						<li style="" class="number border border-primary p-1 mb-1 rounded bg-light list-group-item text-center" onclick="openQuestion(this)">
-							<p class="mb-0" number="{{ $i + 1 }}">{{ $i + 1 }}</p>
+							<p class="mb-0" questionid="{{ $questionsList[$i]->id }}">{{ $i + 1 }}</p>
 						</li>
 					@endfor
 				</ul>

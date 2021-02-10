@@ -43,6 +43,7 @@ class TestController extends Controller
 		$question = new Question();
 		$requiredQuestion = $question->where('testId', $id)->orderBy('number')->first();
 		$questionsCount = Question::where('testId', $id)->count();
+		$questionsList = Question::where('testId', $id)->orderBy('number')->get();
 
 		if (!$request->cookie('userId')) {
 			$user = new User();
@@ -52,7 +53,8 @@ class TestController extends Controller
 				->view('testQuestion', [
 					'test' => $test,
 					'question' => $requiredQuestion,
-					'questionsCount' => $questionsCount
+					'questionsCount' => $questionsCount,
+					'questionsList' => $questionsList
 				])
 				->cookie('userId', $user->id, 60 * 24 * 30 * 12);
 		} else {
@@ -63,10 +65,16 @@ class TestController extends Controller
 
 				return redirect("$id/result");
 			} else {
+				Answer::where([
+					['userId', $request->cookie('userId')],
+					['testId', $id]
+				])->delete();
+
 				return response()->view('testQuestion', [
 					'test' => $test,
 					'question' => $requiredQuestion,
-					'questionsCount' => $questionsCount
+					'questionsCount' => $questionsCount,
+					'questionsList' => $questionsList
 				]);
 			}
 		}
@@ -77,23 +85,33 @@ class TestController extends Controller
 		$answer = new Answer();
 		$question = new Question();
 
-		$answer->userId = $request->cookie('userId');
-		$answer->questionId = $request->questionId;
-		$answer->testId = $request->testId;
-		$answer->value = $request->value;
-		$answer->done = $this->checkAnswer(
-			$request->value, 
-			$question->find($request->questionId)->trueAnswer, 
-			$request->questionType
-		);
-		$answer->save(); 
-		
+		if (Answer::where([
+			['questionId', $request->questionId],
+			['userId', $request->cookie('userId')]
+		])->doesntExist()) {
+			$answer->userId = $request->cookie('userId');
+			$answer->questionId = $request->questionId;
+			$answer->testId = $request->testId;
+			$answer->value = mb_strtolower($request->value);
+			$answer->done = $this->checkAnswer(
+				mb_strtolower($request->value), 
+				$question->find($request->questionId)->trueAnswer, 
+				$request->questionType
+			);
+			$answer->save(); 			
+		} else {
+			Answer::where([
+				['questionId', $request->questionId],
+				['userId', $request->cookie('userId')]
+			])->update(['value' => $request->value]);
+		}
+
 		$questionsCount = $question->where('testId', $request->testId)->count();
 
-		if ($request->questionNumber < $questionsCount) {
+		if ($request->questionNumber - 1 < $questionsCount) {
 			$requiredQuestion = $question->where([
 				['testId', $request->testId],
-				['number', $request->questionNumber + 1]
+				['number', $request->questionNumber]
 			])->first();
 
 			return response($requiredQuestion);
@@ -154,10 +172,21 @@ class TestController extends Controller
 
 	public function getQuestionForTest(Request $request)
 	{
-		return Question::where([
-			['testId', $request->testId],
-			['number', $request->number]
-		])->first();
+		$requestArray = [];
+
+		if (Answer::where([
+			['userId', $request->cookie('userId')],
+			['questionId', $request->questionId]
+		])->exists()) {
+			$requestArray['answer'] = Answer::where([
+				['userId', $request->cookie('userId')],
+				['questionId', $request->questionId]
+			])->first()->value;
+		}
+
+		$requestArray['question'] = Question::find($request->questionId);
+
+		return response($requestArray);
 	}
 
 	private function checkAnswer(string $userAnswer, string $trueAnswer, string $type): bool
