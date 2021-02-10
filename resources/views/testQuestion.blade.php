@@ -1,12 +1,27 @@
 @extends('templates.mainTemplate')
 
 @section('content')
+	<style>
+		.number {
+			opacity: 0.4; 
+			cursor: pointer; 
+			width: 60px;
+		}
+
+		.selectedNumber {
+			opacity: 1;
+			cursor: default;
+		}
+	</style>
+</head>
+<body id="body">
     <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
         <a class="my-0 mr-md-auto font-weight-normal" href="/"><h5 >TestHub</h5></a>
         <a class="btn btn-outline-primary" href="#">Войти</a>
     </div>	
 	<div class="container">
-			<div class="col-md-12">
+		<div class="row">
+			<div class="col-md-11 pr-5">
 				<input type="hidden" id="questionNumber" value="{{ $question->number }}">
 				<input type="hidden" id="questionId" value="{{ $question->id }}">
 				<input type="hidden" id="questionType" value="{{ $question->type }}">
@@ -52,6 +67,18 @@
 					<button type="button" class="btn btn-light text-">Вернуться</button>
 					<button type="button" class="btn btn-primary" onclick="setAnswer()">Ответить</button>
 				</div>
+			</div>
+			<div class="col-md-1">
+				<ul class="p-0">
+					<li class="selectedNumber number border border-primary p-1 mb-1 rounded bg-light list-group-item text-center">
+						<p class="mb-0" number="1">1</p>
+					</li>
+					@for ($i = 1; $i < $questionsCount; $i++)
+						<li style="" class="number border border-primary p-1 mb-1 rounded bg-light list-group-item text-center" onclick="openQuestion(this)">
+							<p class="mb-0" number="{{ $i + 1 }}">{{ $i + 1 }}</p>
+						</li>
+					@endfor
+				</ul>
 			</div>
 		</div>
 	</div>

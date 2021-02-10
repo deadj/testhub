@@ -42,6 +42,7 @@ class TestController extends Controller
 		
 		$question = new Question();
 		$requiredQuestion = $question->where('testId', $id)->orderBy('number')->first();
+		$questionsCount = Question::where('testId', $id)->count();
 
 		if (!$request->cookie('userId')) {
 			$user = new User();
@@ -50,7 +51,8 @@ class TestController extends Controller
 			return response()
 				->view('testQuestion', [
 					'test' => $test,
-					'question' => $requiredQuestion
+					'question' => $requiredQuestion,
+					'questionsCount' => $questionsCount
 				])
 				->cookie('userId', $user->id, 60 * 24 * 30 * 12);
 		} else {
@@ -63,7 +65,8 @@ class TestController extends Controller
 			} else {
 				return response()->view('testQuestion', [
 					'test' => $test,
-					'question' => $requiredQuestion
+					'question' => $requiredQuestion,
+					'questionsCount' => $questionsCount
 				]);
 			}
 		}
@@ -147,6 +150,14 @@ class TestController extends Controller
 	public function setUserName(Request $request): void
 	{
 		User::find($request->cookie('userId'))->update(['name' => $request->userName]);
+	}
+
+	public function getQuestionForTest(Request $request)
+	{
+		return Question::where([
+			['testId', $request->testId],
+			['number', $request->number]
+		])->first();
 	}
 
 	private function checkAnswer(string $userAnswer, string $trueAnswer, string $type): bool

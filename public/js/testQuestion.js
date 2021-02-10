@@ -99,6 +99,48 @@ function checkAnswer(questionType) {
 	}
 }
 
+async function openQuestion(el) {
+	var requestNumber = el.querySelector('p').getAttribute('number');
+
+	var formData = new FormData();
+	formData.append('number', requestNumber);
+	formData.append('testId', testId.value);
+	formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+
+	var response = await fetch('/getQuestionForTest', {
+		method: 'POST',
+		body: formData
+	});
+
+	if (response.ok) {
+		document.querySelector('.selectedNumber').setAttribute('onclick', "openQuestion(this)");
+		document.querySelector('.selectedNumber').classList.remove('selectedNumber');
+
+		el.classList.add('selectedNumber');
+		el.removeAttribute('onclick', "openQuestion(this)");
+
+		var response = await response.json();
+
+		questionNumber.value = response.number;
+		questionId.value = response.id;
+		questionType.value = response.type;
+		questionText.innerHTML = response.questions;
+		questionsBalls.innerHTML = "За ответ на этот вопрос даётся " + response.balls + " баллов";
+
+		if (response.type == "oneAnswer") {
+			printUlAnswers("radio", response.answer);
+		} else if (response.type == "multipleAnswers") {	
+			printUlAnswers("checkbox", response.answer);
+		} else if (response.type == "textAnswer") {
+			printInputAnswer("text");
+		} else if (response.type == "numberAnswer") {
+			printInputAnswer("number");
+		}
+	} else {
+		printErrorMessage('Ой... Что-то пошло нет так:(');
+	}
+}
+
 async function checkTime() {
 	
 }

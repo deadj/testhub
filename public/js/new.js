@@ -366,7 +366,7 @@ async function printQuestion(el) {
     formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
     formData.append('id', el.getAttribute('questionid'));
 
-    var response = await fetch('/getQuestion', {
+    var response = await fetch('/getQuestionForCreate', {
         method: 'POST',
         body: formData
     });
