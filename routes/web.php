@@ -29,3 +29,4 @@ Route::post('/updateQuestion', 'NewTestController@updateQuestion');
 Route::post('/getTestInfoToView', 'NewTestController@getTestInfoToView');
 Route::post('/addAnswer', 'TestController@addAnswer');
 Route::post('/setUserName', 'TestController@setUserName');
+Route::post('/stopTest', 'TestController@saveResult');

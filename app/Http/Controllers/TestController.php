@@ -8,6 +8,7 @@ use App\Models\Question;
 use App\Models\Answer;
 use App\Models\User;
 use App\Models\Result;
+use App\Models\TestTime;
 
 class TestController extends Controller
 {
@@ -49,6 +50,8 @@ class TestController extends Controller
 			$user = new User();
 			$user->save();
 
+			$this->addTestTime($user->id, $id);
+
 			return response()
 				->view('testQuestion', [
 					'test' => $test,
@@ -65,6 +68,8 @@ class TestController extends Controller
 
 				return redirect("$id/result");
 			} else {
+				$this->addTestTime($request->cookie('userId'), $id);
+
 				Answer::where([
 					['userId', $request->cookie('userId')],
 					['testId', $id]
@@ -84,6 +89,10 @@ class TestController extends Controller
 	{
 		$answer = new Answer();
 		$question = new Question();
+
+		if (!$this->checkTestTime($request)) {
+			return response()->json('lastQuestion');
+		}
 
 		if (Answer::where([
 			['questionId', $request->questionId],
@@ -116,25 +125,11 @@ class TestController extends Controller
 
 			return response($requiredQuestion);
 		} else {
-			$result = new Result();
-			$answer = new Answer();
-			
-			$doneAnswers = $answer->where([
+			$this->saveResult($request);
+			TestTime::where([
 				['userId', $request->cookie('userId')],
-				['testId', $request->testId],
-				['done', 1]
-			])->get();
-
-			$balls = 0;
-			foreach ($doneAnswers as $answer) {
-				$balls += $question->find($answer->questionId)->balls;
-			}
-
-			$result->testId = $request->testId;
-			$result->userId = $request->cookie('userId');
-			$result->balls = $balls;
-			$result->save();
-
+				['testId', $request->testId]
+			])->delete();
 			return response()->json('lastQuestion');
 		}
 	}
@@ -189,6 +184,27 @@ class TestController extends Controller
 		return response($requestArray);
 	}
 
+	public function saveResult(Request $request)
+	{
+		$result = new Result();
+		
+		$doneAnswers = Answer::where([
+			['userId', $request->cookie('userId')],
+			['testId', $request->testId],
+			['done', 1]
+		])->get();
+
+		$balls = 0;
+		foreach ($doneAnswers as $answer) {
+			$balls += Question::find($answer->questionId)->balls;
+		}
+
+		$result->testId = $request->testId;
+		$result->userId = $request->cookie('userId');
+		$result->balls = $balls;
+		$result->save();
+	}
+
 	private function checkAnswer(string $userAnswer, string $trueAnswer, string $type): bool
 	{
 		$userAnswer = json_decode($userAnswer, true);
@@ -208,6 +224,41 @@ class TestController extends Controller
 				return true;
 			} else {
 				return false;
+			}
+		}
+	}
+
+	private function addTestTime(int $userId, int $testId): void
+	{
+		$testTime = new TestTime();
+		$testTime->userId = $userId;
+		$testTime->testId = $testId;
+		$testTime->save();
+	}
+
+
+	private function checkTestTime(Request $request)
+	{ 
+		if (Test::find($request->testId)->minutesLimit != NULL) {
+			$startTime = TestTime::where([
+				['userId', $request->cookie('userId')],
+				['testId', $request->testId]
+			])->first()->created_at->getTimestamp();
+			$nowTime = now()->getTimestamp();
+			$testTime = Test::find($request->testId)->minutesLimit * 60;
+			$pastServerTime = $nowTime - $startTime;
+
+			if ($testTime <= $pastServerTime) {
+				$this->saveResult($request);
+
+				TestTime::where([
+					['userId', $request->cookie('userId')],
+					['testId', $request->testId]
+				])->delete();
+				
+				return false;
+			} else {
+				return true;
 			}
 		}
 	}

@@ -1,3 +1,5 @@
+setInterval(checkTime, 1000);
+
 async function setAnswer() {
     if (!checkAnswer(questionType.value)) {
     	return;
@@ -187,31 +189,49 @@ async function openQuestion(el) {
 	}
 }
 
-async function checkTime() {
-	
-}
+function checkTime() {
+	var minutes = timer.getAttribute('minutes');
+	var seconds = timer.getAttribute('seconds');
 
-async function setUserName() {
-	if (userName.value == "") {
-		document.querySelector('#userNameField input').classList.add('border');
-		document.querySelector('#userNameField input').classList.add('border-danger');
-
-		return;
+	if (minutes == 0 && seconds == 0) {
+		stopTest();
+	}
+  
+	if (seconds == 0) {
+		minutes -= 1;
+		seconds = 59;
+	} else {
+		seconds -= 1;
 	}
 
-	formData = new FormData();
-	formData.append('userName', userName.value);
-	formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+	if (seconds == 0 && minutes == 1) {
+		timer.classList.add('text-danger');
+	}
+  
+	timer.setAttribute('minutes', minutes);
+	timer.setAttribute('seconds', seconds);  
 
-	var response = await fetch('/setUserName', {
+	if (seconds < 10) {
+		timer.innerHTML = "Осталось времени: " + minutes + ":0" + seconds;	
+	} else {
+		timer.innerHTML = "Осталось времени: " + minutes + ":" + seconds;
+	}
+}
+
+async function stopTest() {
+	var formData = new FormData();
+	formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+	formData.append('testId', testId.value);
+
+	var response = await fetch('/stopTest', {
 		method: 'POST',
 		body: formData
 	});
 
 	if (response.ok) {
-		userNameField.innerHTML = "<h5>Спасибо</h5>";
+		document.location.href = '/' + testId.value + '/result';
 	} else {
-		printErrorMessage('Ой... Что-то пошло нет так:(');
+		console.log(response.status);
 	}
 }
 

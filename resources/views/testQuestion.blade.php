@@ -28,7 +28,7 @@
 				<input type="hidden" id="testId" value="{{ $question->testId }}">
 				<h1 class="mb-4">{{ $test->name }}</h1>
 				@if ($test->minutesLimit != NULL)
-					<p>Осталось времени {{ $test->minutesLimit }}:00</p>
+					<p id="timer" minutes="{{ $test->minutesLimit }}" seconds="0">Осталось времени {{ $test->minutesLimit }}:00</p>
 				@endif
 				<p id="questionsBalls" class="text-secondary">За ответ на этот вопрос даётся {{ $question->balls }} баллов</p>
 				<h5 id="questionText" class="mb-4">{{ $question->questions }}</h5>

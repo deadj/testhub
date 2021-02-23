@@ -17,3 +17,4 @@ mix.js('resources/js/app.js', 'public/js')
 mix.scripts('resources/js/new.js', 'public/js/new.js');
 mix.scripts('resources/js/tests.js', 'public/js/tests.js');
 mix.scripts('resources/js/testQuestion.js', 'public/js/testQuestion.js');
+mix.scripts('resources/js/testResult.js', 'public/js/testResult.js');

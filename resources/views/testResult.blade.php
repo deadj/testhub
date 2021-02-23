@@ -35,5 +35,5 @@
         </div>        
     </script>
 
-    <script src="{{ URL::asset('js/testQuestion.js') }}"></script>
+    <script src="{{ URL::asset('js/testResult.js') }}"></script>
 @endsection
