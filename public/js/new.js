@@ -186,7 +186,7 @@ function printErrors(data){
     }
 
     errorsBlock.append(ul);
-    document.querySelector('.container').prepend(errorsBlock);
+    document.querySelector('#newTest').prepend(errorsBlock);
 }
 
 function changeAnswerType(el){
@@ -300,34 +300,19 @@ function checkQuestionData(answerType){
 }
 
 async function openPublish(){
-    if (questionsCount.innerHTML == 'Всего вопросов: 0') {
-        printErrorMessage('Добавьте ещё вопрос');
+    var formData = new FormData();
+    formData.append('testId', testId.value);
+    formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+
+    var response = await fetch ('/finishCreatingTest', {
+        method: "POST",
+        body: formData
+    });
+
+    if (response.ok) {
+        document.location.href = '/publish/' + testId.value;
     } else {
-        var formData = new FormData();
-        formData.append('testId', testId.value);
-        formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
-
-        var response = fetch ('/finishCreatingTest', {
-            method: "POST",
-            body: formData
-        });
-
-        newTest.remove();
-        rightBlock.innerHTML = "";
-        
-        var publishTemplate = document.querySelector('#publishTemplate').innerHTML;
-
-        publishTemplate = publishTemplate.replace(/publishLink/g, 'http://localhost/test/preface/' + testId.value);
-        publishTemplate = publishTemplate.replace(/resultsLink/g, 'http://localhost/stat/results/' + testId.value);
-        publishTemplate = publishTemplate.replace(/myTestsLink/g, 'http://localhost/stat/results');
-
-        var publishBlock = document.createElement('div');
-        publishBlock.id = "publishBlock";
-        publishBlock.innerHTML = publishTemplate;
-        publishBlock.classList.add('col-9');
-        publishBlock.classList.add('pr-5');
-
-        document.querySelector('.container .row').prepend(publishBlock);
+        console.log(response.status);
     }
 }
 

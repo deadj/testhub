@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', 'HomeController@print');
-Route::get('/new', 'NewTestController@print');
+Route::get('/new', 'NewTestController@printNewTestPage');
 Route::get('/getTags', 'NewTestController@getTags');
+Route::get('/publish/{id}', 'NewTestController@printPublishTestPage');
 Route::get('/tests', 'TestsController@printPage');
 Route::get('/{id}/preface', 'TestController@printPrefacePage');
 Route::get('/{id}/question', 'TestController@printQuestionPage');

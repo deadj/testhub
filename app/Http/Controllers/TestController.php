@@ -14,6 +14,10 @@ class TestController extends Controller
 {
 	public function printPrefacePage(Request $request, int $id)
 	{
+		if (Test::where('id', $id)->doesntExist()) {
+			abort(404);
+		}		
+
 		if ($request->cookie('userId') && Result::where([
 				['testId', $id],
 				['userId', $request->cookie('userId')]
@@ -26,7 +30,7 @@ class TestController extends Controller
 		$questionsCount = Question::where('testId', $id)->count();
 		$maxBalls = Question::where('testId', $id)->sum('balls');
 
-		return view('testPreface', [
+		return view('preface', [
 			'test' => $requiredTest,
 			'questionsCount' => $questionsCount,
 			'maxBalls' => $maxBalls
@@ -35,6 +39,10 @@ class TestController extends Controller
 
 	public function printQuestionPage(Request $request, int $id)
 	{
+		if (Test::where('id', $id)->doesntExist()) {
+			abort(404);
+		}	
+		
 		$test = Test::find($id);
 		
 		$requiredQuestion = Question::where('testId', $id)->orderBy('number')->first();
@@ -48,7 +56,7 @@ class TestController extends Controller
 			$this->addTestTime($user->id, $id);
 
 			return response()
-				->view('testQuestion', [
+				->view('question', [
 					'test' => $test,
 					'question' => $requiredQuestion,
 					'questionsCount' => $questionsCount,
@@ -70,7 +78,7 @@ class TestController extends Controller
 					['testId', $id]
 				])->delete();
 
-				return response()->view('testQuestion', [
+				return response()->view('question', [
 					'test' => $test,
 					'question' => $requiredQuestion,
 					'questionsCount' => $questionsCount,
@@ -145,7 +153,7 @@ class TestController extends Controller
 			['userId', $request->cookie('userId')]
 		])->first();
 
-		return response()->view('testResult', [
+		return response()->view('result', [
 			'result' => $responseResult,
 			'test' => $responseTest
 		]);

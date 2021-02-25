@@ -6,13 +6,29 @@ use Illuminate\Http\Request;
 use App\Models\Test;
 use App\Models\Question;
 use App\Models\Tag;
+use App\Models\User;
 use Validator;
 
 class NewTestController extends Controller
 {
-    public function print()
+    public function printNewTestPage()
     {
-    	return view('new');
+        return view('new');
+    }
+
+    public function printPublishTestPage(Request $request, int $id)
+    {
+        if (Test::where('id', $id)->exists()) {
+            $test = Test::find($id);
+        
+            if (!$request->cookie('userId') || $test->userId != $request->cookie('userId')) {
+                abort(404);
+            }
+        } else {
+            abort(404);
+        }
+
+        return view('publish', ['id' => $id]);
     }
 
     public function addTest(Request $request)
@@ -22,12 +38,20 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
+            if (!$request->cookie('userId')) {
+                $user = new User;
+                $user->save();
+            } else {
+                $user = User::find($request->cookie('userId'));
+            }
+
             $test = new Test();
 
             $test->name                = $request->testName;
             $test->foreword            = $request->testForeword;
             $test->minBalls            = $request->minBalls;
             $test->minutesLimit        = $request->timeLimit;
+            $test->userId              = $user->id;
 
             if ($request->has('showWrongAnswers')) {
                 $test->showWrongAnswers = 1;
@@ -51,7 +75,7 @@ class NewTestController extends Controller
 
             $test->save();
 
-            return $test->id;     
+            return response($test->id)->cookie('userId', $user->id, 60 * 24 * 30 * 12);
         }
     }
 

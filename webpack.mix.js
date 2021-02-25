@@ -19,3 +19,4 @@ mix.scripts('resources/js/tests.js', 'public/js/tests.js');
 mix.scripts('resources/js/testQuestion.js', 'public/js/testQuestion.js');
 mix.scripts('resources/js/testResult.js', 'public/js/testResult.js');
 mix.scripts('resources/js/main.js', 'public/js/main.js');
+mix.scripts('resources/js/publish.js', 'public/js/publish.js');
