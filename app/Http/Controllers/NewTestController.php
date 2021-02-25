@@ -10,16 +10,6 @@ use Validator;
 
 class NewTestController extends Controller
 {
-    private $question;
-    private $test;
-
-    public function __construct()
-    {
-        $this->question = new Question();
-        $this->test = new Test();
-        $this->tag = new Tag();
-    }
-
     public function print()
     {
     	return view('new');
@@ -32,37 +22,36 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
-            $this->test->name                = $request->testName;
-            $this->test->foreword            = $request->testForeword;
-            $this->test->minBalls            = $request->minBalls;
-            $this->test->minutesLimit        = $request->timeLimit;
-            $this->test->maxBalls            = 0;
-            $this->test->countOfParticipants = 0;
-            $this->test->countOfPassed       = 0;
+            $test = new Test();
+
+            $test->name                = $request->testName;
+            $test->foreword            = $request->testForeword;
+            $test->minBalls            = $request->minBalls;
+            $test->minutesLimit        = $request->timeLimit;
 
             if ($request->has('showWrongAnswers')) {
-                $this->test->showWrongAnswers = 1;
+                $test->showWrongAnswers = 1;
             } else {
-                $this->test->showWrongAnswers = 0;
+                $test->showWrongAnswers = 0;
             }
 
             if ($request->has('publicResults')) {
-                $this->test->publicResults = 1;
+                $test->publicResults = 1;
             } else {
-                $this->test->publicResults = 0;
+                $test->publicResults = 0;
             }
 
             if ($request->has('tags')) {
                 $tags = preg_split('/,[ ]?/ui', mb_strtolower($request->tags), 0, PREG_SPLIT_NO_EMPTY);
-                $this->test->tags = json_encode($tags);
+                $test->tags = json_encode($tags);
                 $this->addTags($tags);
             } else {
-                $this->test->tags = json_encode([]);
+                $test->tags = json_encode([]);
             }
 
-            $this->test->save();
+            $test->save();
 
-            return $this->test->id;     
+            return $test->id;     
         }
     }
 
@@ -75,18 +64,20 @@ class NewTestController extends Controller
         } else {
             $testId = $request->testId;
 
-            $this->question->testId     = $testId;
-            $this->question->questions  = $request->question;
-            $this->question->balls      = $request->balls;
-            $this->question->type       = $request->type;
-            $this->question->answer     = $request->answer;
-            $this->question->trueAnswer = mb_strtolower($request->trueAnswer);
-            $this->question->number     = $this->question->where('testId', $testId)->count() + 1;
+            $question = new Question();
 
-            $this->question->save();
+            $question->testId     = $testId;
+            $question->questions  = $request->question;
+            $question->balls      = $request->balls;
+            $question->type       = $request->type;
+            $question->answer     = $request->answer;
+            $question->trueAnswer = mb_strtolower($request->trueAnswer);
+            $question->number     = $question->where('testId', $testId)->count() + 1;
 
-            $questionCount = $this->question->where('testId', $testId)->count();
-            $balls = $this->question->where('testId', $testId)->get()->sum('balls');
+            $question->save();
+
+            $questionCount = $question->where('testId', $testId)->count();
+            $balls = $question->where('testId', $testId)->get()->sum('balls');
             $time = Test::find($testId)->minutesLimit;
             Test::where('id', $testId)->update(['maxBalls' => $balls]);
 
@@ -96,19 +87,19 @@ class NewTestController extends Controller
                 $time /= $questionCount;
             }
 
-            $trueAnswer = $this->getTrueAnswer($this->question->id);
+            $trueAnswer = $this->getTrueAnswer($question->id);
 
             return array(
-                'questionId'       => $this->question->id,
+                'questionId'       => $question->id,
                 'questionCount'    => $questionCount,
                 'balls'            => $balls,
                 'time'             => $time,
-                'cutQuestion'      => mb_substr($this->question->questions, 0, 20) . "...",
-                'fullQuestion'     => $this->question->questions,
+                'cutQuestion'      => mb_substr($question->questions, 0, 20) . "...",
+                'fullQuestion'     => $question->questions,
                 'cutAnswer'        => mb_substr($trueAnswer, 0, 20) . "...",
                 'fullAnswer'       => $trueAnswer,
-                'ballsForQuestion' => $this->question->balls,
-                'questionNumber'   => $this->question->number
+                'ballsForQuestion' => $question->balls,
+                'questionNumber'   => $question->number
             );
         }
     }
@@ -116,13 +107,13 @@ class NewTestController extends Controller
     public function changeOrderOfQuestionNumbers(Request $request)
     {
         foreach (json_decode($request->numbersArray, true) as $number) {
-            $this->question->where('id', $number[0])->update(['number' => $number[1]]);
+            Question::where('id', $number[0])->update(['number' => $number[1]]);
         }    
     }
 
     public function getQuestion(Request $request): string
     {
-        return json_encode($this->question->find($request->id));
+        return json_encode(Question::find($request->id));
     }
 
     public function updateQuestion(Request $request): array
@@ -132,19 +123,16 @@ class NewTestController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->messages(), 422);
         } else {
-            $question = $this->question->where('id', $request->id);
-
-            $question->update([
+            Question::where('id', $request->id)->update([
                 'questions'  => $request->question,
                 'balls'      => $request->balls,
                 'type'       => $request->type,
                 'answer'     => $request->answer,
                 'trueAnswer' => $request->trueAnswer
             ]);
-
             
             $trueAnswer = $this->getTrueAnswer($request->id);
-            $question = $this->question->find($request->id);
+            $question = Question::find($request->id);
 
             $questionInfo = [
                 'cutQuestion'      => mb_substr($question->questions, 0, 20) . "...",
@@ -166,9 +154,14 @@ class NewTestController extends Controller
         return $this->getTestInfo($request->testId);
     }
 
+    public function finishCreatingTest(Request $request): void
+    {
+        Test::where('id', $request->testId)->update(['done' => true]);
+    }
+
     public function getTags()
     {
-        $tagsObjects = $this->tag->get();
+        $tagsObjects = Tag::get();
         $tags = [];
         
         foreach ($tagsObjects as $tag) {
@@ -181,7 +174,7 @@ class NewTestController extends Controller
     private function addTags(array $tags): void
     {           
         foreach ($tags as $tag) {
-            if ($this->tag->where('tag', $tag)->doesntExist()) {
+            if (Tag::where('tag', $tag)->doesntExist()) {
                 $newTag = new Tag();
                 $newTag->tag = trim($tag);
                 $newTag->save();
@@ -191,8 +184,8 @@ class NewTestController extends Controller
 
     private function getTestInfo(int $testId): array
     {
-        $questionCount = $this->question->where('testId', $testId)->count();
-        $balls = $this->question->where('testId', $testId)->get()->sum('balls');
+        $questionCount = Question::where('testId', $testId)->count();
+        $balls = Question::where('testId', $testId)->get()->sum('balls');
         $time = Test::find($testId)->minutesLimit;
 
         if ($time == NULL) {
@@ -210,15 +203,15 @@ class NewTestController extends Controller
 
     private function getTrueAnswer(int $id)
     {
-        $trueAnswer = json_decode($this->question->find($id)->trueAnswer, true);
-        $type = $this->question->find($id)->type;
+        $trueAnswer = json_decode(Question::find($id)->trueAnswer, true);
+        $type = Question::find($id)->type;
         $answer = NULL;
 
         if ($type == Question::TYPE_ONE_ANSWER) {
-            $answer = json_decode($this->question->find($id)->answer, true)[$trueAnswer];
+            $answer = json_decode(Question::find($id)->answer, true)[$trueAnswer];
         } elseif ($type == Question::TYPE_MULTIPLE_ANSWER) {
             foreach ($trueAnswer as $stepAnswer) {
-                $answer .= json_decode($this->question->find($id)->answer, true)[$stepAnswer] . "; ";
+                $answer .= json_decode(Question::find($id)->answer, true)[$stepAnswer] . "; ";
             }
         } elseif ($type == Question::TYPE_NUMBER_ANSWER) {
             $answer = "от " . 

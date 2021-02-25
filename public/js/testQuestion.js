@@ -5,6 +5,8 @@ async function setAnswer() {
     	return;
     }
 
+    replyButton.disabled = true;
+
 	var formData = new FormData();
 	formData.append('questionId', questionId.value);
 	formData.append('questionType', questionType.value);
@@ -78,8 +80,11 @@ async function setAnswer() {
 		selectedNumber.classList.add('text-white');
 
 		changeButtonText();
+
+		replyButton.disabled = false;
 	} else {
 		printErrorMessage('Ой... Что-то пошло нет так:(');
+		replyButton.disabled = false;
 	}
 }
 
@@ -190,31 +195,33 @@ async function openQuestion(el) {
 }
 
 function checkTime() {
-	var minutes = timer.getAttribute('minutes');
-	var seconds = timer.getAttribute('seconds');
+	if (document.querySelector('#timer')) {
+		var minutes = timer.getAttribute('minutes');
+		var seconds = timer.getAttribute('seconds');
 
-	if (minutes == 0 && seconds == 0) {
-		stopTest();
-	}
-  
-	if (seconds == 0) {
-		minutes -= 1;
-		seconds = 59;
-	} else {
-		seconds -= 1;
-	}
+		if (minutes == 0 && seconds == 0) {
+			stopTest();
+		}
+	  
+		if (seconds == 0) {
+			minutes -= 1;
+			seconds = 59;
+		} else {
+			seconds -= 1;
+		}
 
-	if (seconds == 0 && minutes == 1) {
-		timer.classList.add('text-danger');
-	}
-  
-	timer.setAttribute('minutes', minutes);
-	timer.setAttribute('seconds', seconds);  
+		if (seconds == 0 && minutes == 1) {
+			timer.classList.add('text-danger');
+		}
+	  
+		timer.setAttribute('minutes', minutes);
+		timer.setAttribute('seconds', seconds);  
 
-	if (seconds < 10) {
-		timer.innerHTML = "Осталось времени: " + minutes + ":0" + seconds;	
-	} else {
-		timer.innerHTML = "Осталось времени: " + minutes + ":" + seconds;
+		if (seconds < 10) {
+			timer.innerHTML = "Осталось времени: " + minutes + ":0" + seconds;	
+		} else {
+			timer.innerHTML = "Осталось времени: " + minutes + ":" + seconds;
+		}		
 	}
 }
 
@@ -289,31 +296,4 @@ function printInputAnswer(type) {
 	answersBlock.innerHTML = "";
 	answersBlock.append(p);
 	answersBlock.append(input);
-}
-
-function printErrorMessage(newMessage){
-    if (document.getElementById('message')) {
-        message.querySelector('div').innerHTML = newMessage
-    } else {
-        var errorPopup = document.querySelector('#errorPopup').innerHTML;
-        errorPopup = errorPopup.replace('[[message]]', newMessage);
-
-        var errorMessage = document.createElement('div');
-        errorMessage.id = 'message';
-        errorMessage.classList.add('position-absolute');
-        errorMessage.classList.add('col-md-4');
-        errorMessage.classList.add('text-center');
-        errorMessage.innerHTML = errorPopup;
-        errorMessage.style.bottom = "10px";
-        errorMessage.style.right = "10px";
-        errorMessage.style.zIndex = "1500";
-
-        body.prepend(errorMessage);
-    }
-
-    setTimeout(closeMessage, 3000, errorMessage);
-}
-
-function closeMessage(){
-    message.remove();
 }

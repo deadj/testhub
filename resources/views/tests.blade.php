@@ -36,7 +36,7 @@
 								<h3 class="testName mb-0">{{ $test->name }}</h3>	
 								<small>
 									@foreach (json_decode($test->tags, true) as $tag)
-										<a class="mr-2" href=""> {{ $tag }}</a>
+										<a class="mr-2" href="tests?search={{ $tag }}"> {{ $tag }}</a>
 									@endforeach
 								</small>
 							</div>

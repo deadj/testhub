@@ -25,6 +25,8 @@ async function addTest(e) {
         return;
     }
 
+    nextStepButton.disabled = true;
+
     var formData = new FormData();
     formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
     formData.append('testName', testName);
@@ -50,6 +52,7 @@ async function addTest(e) {
     });
 
     if (response.ok) {
+        nextStepButton.disabled = false;
         openQuestionStep(await response.text());
     } else {
         if (response.status === 422) {
@@ -59,6 +62,8 @@ async function addTest(e) {
             console.log(response.status);
             printErrorMessage('Ой... Что-то пошло нет так:(');
         }
+
+        nextStepButton.disabled = false;
     }
 }
 
@@ -222,29 +227,6 @@ function deleteAnswer(el){
     }
 }
 
-function printErrorMessage(newMessage){
-    if (document.getElementById('message')) {
-        message.querySelector('div').innerHTML = newMessage
-    } else {
-        var errorPopup = document.getElementById('errorPopup').innerHTML;
-        errorPopup = errorPopup.replace('[[message]]', newMessage);
-
-        var errorMessage = document.createElement('div');
-        errorMessage.id = 'message';
-        errorMessage.classList.add('position-absolute');
-        errorMessage.classList.add('col-md-4');
-        errorMessage.classList.add('text-center');
-        errorMessage.innerHTML = errorPopup;
-        errorMessage.style.bottom = "10px";
-        errorMessage.style.right = "10px";
-        errorMessage.style.zIndex = "1500";
-
-        body.prepend(errorMessage);
-    }
-
-    setTimeout(closeMessage, 3000, errorMessage);
-}
-
 function changeAnswersId(answerType){
     var requestForSelector = ".answer input[type='" + answerType + "']";   
     var answers = document.querySelectorAll(requestForSelector);
@@ -253,10 +235,6 @@ function changeAnswersId(answerType){
     for (var i = 0; i < answersCount; i++) {
         answers[i].setAttribute('answerid', i);    
     }
-}
-
-function closeMessage(){
-    message.remove();
 }
 
 function addQuestionToList(data) {
@@ -325,12 +303,17 @@ async function openPublish(){
     if (questionsCount.innerHTML == 'Всего вопросов: 0') {
         printErrorMessage('Добавьте ещё вопрос');
     } else {
+        var formData = new FormData();
+        formData.append('testId', testId.value);
+        formData.append('_token', document.querySelector("meta[name='csrf-token']").getAttribute('content'));
+
+        var response = fetch ('/finishCreatingTest', {
+            method: "POST",
+            body: formData
+        });
+
         newTest.remove();
-        var registerP = rightBlock.querySelectorAll('p');
-        registerP[1].remove();
-        registerP[2].remove();
-        rightBlock.querySelector('hr').remove();
-        testData.remove();
+        rightBlock.innerHTML = "";
         
         var publishTemplate = document.querySelector('#publishTemplate').innerHTML;
 
@@ -544,8 +527,9 @@ async function addQuestion(el) {
     if (errors.length != 0) {
         printErrors(errors);
     } else {
-        var formData = getDataForQuestionsChange();    
+        nextStepButton.disabled = true;
 
+        var formData = getDataForQuestionsChange();    
         var response = await fetch('/addQuestion', {
             method: 'POST',
             body: formData
@@ -557,6 +541,8 @@ async function addQuestion(el) {
             clearQuestionBlock();
             updateTestData(responseData);
             addQuestionToList(responseData);
+
+            nextStepButton.disabled = false;
         } else {
             if (response.status === 422) {
                 var json = await response.json();
@@ -564,6 +550,8 @@ async function addQuestion(el) {
             } else {
                 console.log(response.status);
                 printErrorMessage('Ой... Что-то пошло нет так:(');
+
+                nextStepButton.disabled = true;
             }
         }          
     }

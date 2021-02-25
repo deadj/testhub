@@ -88,5 +88,6 @@
         </div>        
     </script>
 
-	 <script src="{{ URL::asset('js/testQuestion.js') }}"></script>
+	<script src="{{ URL::asset('js/testQuestion.js') }}"></script>
+	<script src="{{ URL::asset('js/main.js') }}"></script>
 @endsection

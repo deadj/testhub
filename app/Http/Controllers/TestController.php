@@ -14,9 +14,6 @@ class TestController extends Controller
 {
 	public function printPrefacePage(Request $request, int $id)
 	{
-		$test = new Test();
-		$question = new Question();
-
 		if ($request->cookie('userId') && Result::where([
 				['testId', $id],
 				['userId', $request->cookie('userId')]
@@ -25,9 +22,9 @@ class TestController extends Controller
 			return redirect("$id/result");
 		}
 
-		$requiredTest = $test->find($id);
-		$questionsCount = $question->where('testId', $id)->count();
-		$maxBalls = $question->where('testId', $id)->sum('balls');
+		$requiredTest = Test::find($id);
+		$questionsCount = Question::where('testId', $id)->count();
+		$maxBalls = Question::where('testId', $id)->sum('balls');
 
 		return view('testPreface', [
 			'test' => $requiredTest,
@@ -38,11 +35,9 @@ class TestController extends Controller
 
 	public function printQuestionPage(Request $request, int $id)
 	{
-		$test = new Test();
-		$test = $test->find($id);
+		$test = Test::find($id);
 		
-		$question = new Question();
-		$requiredQuestion = $question->where('testId', $id)->orderBy('number')->first();
+		$requiredQuestion = Question::where('testId', $id)->orderBy('number')->first();
 		$questionsCount = Question::where('testId', $id)->count();
 		$questionsList = Question::where('testId', $id)->orderBy('number')->get();
 
@@ -88,7 +83,6 @@ class TestController extends Controller
 	public function addAnswer(Request $request)
 	{
 		$answer = new Answer();
-		$question = new Question();
 
 		if (!$this->checkTestTime($request)) {
 			return response()->json('lastQuestion');
@@ -104,7 +98,7 @@ class TestController extends Controller
 			$answer->value = mb_strtolower($request->value);
 			$answer->done = $this->checkAnswer(
 				mb_strtolower($request->value), 
-				$question->find($request->questionId)->trueAnswer, 
+				Question::find($request->questionId)->trueAnswer, 
 				$request->questionType
 			);
 			$answer->save(); 			
@@ -115,10 +109,10 @@ class TestController extends Controller
 			])->update(['value' => $request->value]);
 		}
 
-		$questionsCount = $question->where('testId', $request->testId)->count();
+		$questionsCount = Question::where('testId', $request->testId)->count();
 
 		if ($request->questionNumber - 1 < $questionsCount) {
-			$requiredQuestion = $question->where([
+			$requiredQuestion = Question::where([
 				['testId', $request->testId],
 				['number', $request->questionNumber]
 			])->first();
@@ -144,12 +138,9 @@ class TestController extends Controller
 
 			return redirect("$id/preface");
 		}
-
-		$test = new Test();
-		$result = new Result();
 		
-		$responseTest = $test->find($id);
-		$responseResult = $result->where([
+		$responseTest = Test::find($id);
+		$responseResult = Result::where([
 			['testId', $id],
 			['userId', $request->cookie('userId')]
 		])->first();
@@ -203,6 +194,15 @@ class TestController extends Controller
 		$result->userId = $request->cookie('userId');
 		$result->balls = $balls;
 		$result->save();
+
+		$test = Test::find($request->testId);
+		$countOfParticipants = $test->countOfParticipants + 1;
+		$countOfPassed = $test->countOfPassed + 1;
+
+		Test::where('id', $request->testId)->update(['countOfParticipants' => $countOfParticipants]);
+		if ($result->balls >= $test->minBalls) {
+			Test::where('id', $request->testId)->update(['countOfPassed' => $test->countOfPassed + 1]);
+		}
 	}
 
 	private function checkAnswer(string $userAnswer, string $trueAnswer, string $type): bool

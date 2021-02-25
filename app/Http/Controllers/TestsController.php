@@ -20,7 +20,10 @@ class TestsController extends Controller
         if ($request->has('search')) {
             $search = $request->search;
 
-            $namesSearch = $test->orderBy('id', 'desc')->where('name', 'like', '%' . $search . '%')->get();
+            $namesSearch = $test->orderBy('id', 'desc')->where([
+                ['name', 'like', '%' . $search . '%'],
+                ['done', true]
+            ])->get();
             $tagsSearch = $test->orderBy('id', 'desc')->whereJsonContains('tags', $search)->get();
             $tests = $namesSearch->merge($tagsSearch);
             $testsCount = $tests->count();
@@ -30,7 +33,7 @@ class TestsController extends Controller
             $search = "";
             $testsCount = $test->count();
             $page = $this->getRealPage($testsCount, $page);
-            $tests = $test->orderBy('id', 'desc')->skip(($page - 1) * 10)->take(10)->get();
+            $tests = $test->where('done', true)->orderBy('id', 'desc')->skip(($page - 1) * 10)->take(10)->get();
         }
 
     	return view('tests', [

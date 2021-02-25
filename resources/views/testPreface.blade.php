@@ -21,9 +21,13 @@
 							Время прохождения не ограничено.
 						@endif
 					</p>
-					<p>
-						Тест сдало {{ $test->countOfParticipants }} ({{ $test->countOfParticipants / 100 * $test->countOfPassed }}%) из {{ $test->countOfParticipants }} участников.
-					</p>
+					@if ($test->countOfParticipants == 0)
+						<p>Текст пока никто не сдал. Вы можете стать первым.</p>
+					@else
+						<p>
+							Тест сдало {{ $test->countOfPassed }} ({{ $test->countOfPassed * 100 / $test->countOfParticipants }}%) из {{ $test->countOfParticipants }} участников.
+						</p>					
+					@endif
 					<div class="text-center mt-5">
 						<a href="/{{ $test->id }}/question" class="text-center btn btn-primary">Начать теста</a>
 					</div>

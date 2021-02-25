@@ -9,9 +9,7 @@ class HomeController extends Controller
 {
     public function print()
     {
-    	$test = new Test();
-    	$tests = $test->orderBy('id', 'desc')->take(10)->get();
-
+    	$tests = Test::where('done', true)->orderBy('id', 'desc')->take(10)->get();
     	return view('home', ['tests' => $tests]);
     }
 }

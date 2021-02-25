@@ -27,6 +27,7 @@ Route::post('/changeOrderOfQuestionNumbers', 'NewTestController@changeOrderOfQue
 Route::post('/getQuestionForCreate', 'NewTestController@getQuestion');
 Route::post('/updateQuestion', 'NewTestController@updateQuestion');
 Route::post('/getTestInfoToView', 'NewTestController@getTestInfoToView');
+Route::post('finishCreatingTest', 'NewTestController@finishCreatingTest');
 Route::post('/addAnswer', 'TestController@addAnswer');
 Route::post('/setUserName', 'TestController@setUserName');
 Route::post('/stopTest', 'TestController@saveResult');

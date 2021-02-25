@@ -226,5 +226,7 @@
             <small class="ballsCount">Баллы: [[balls]]</small>
         </li>
     </script>
+    
     <script src="{{ URL::asset('js/new.js') }}"></script>
+    <script src="{{ URL::asset('js/main.js') }}"></script>
 @endsection
