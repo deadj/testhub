@@ -92,7 +92,7 @@ class TestController extends Controller
 	{
 		$answer = new Answer();
 
-		if (!$this->checkTestTime($request)) {
+		if (Test::find($request->testId)->minutesLimit != NULL && !$this->checkTestTime($request)) {
 			return response()->json('lastQuestion');
 		}
 

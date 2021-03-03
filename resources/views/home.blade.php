@@ -13,7 +13,7 @@
 				<div class="container">
 					<div class="row">
 						<small class="col-md-6">Название</small>
-						<small class="col-md-3">Сдавало / прошло</small>
+						<small class="col-md-3">Прошло / Сдавало</small>
 					</div>
 					<div class="row">
 						<div class="col-md-11 text-left">

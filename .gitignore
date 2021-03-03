@@ -4,7 +4,6 @@
 /public/js/all.js
 /public/js/app.js
 /resources/js
-/database/migrations
 /storage/*.key
 /vendor
 /app/Http/Requests/NewTestRequest.php

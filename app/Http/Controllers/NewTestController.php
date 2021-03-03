@@ -96,12 +96,12 @@ class NewTestController extends Controller
             $question->type       = $request->type;
             $question->answer     = $request->answer;
             $question->trueAnswer = mb_strtolower($request->trueAnswer);
-            $question->number     = $question->where('testId', $testId)->count() + 1;
+            $question->number     = Question::where('testId', $testId)->count() + 1;
 
             $question->save();
 
-            $questionCount = $question->where('testId', $testId)->count();
-            $balls = $question->where('testId', $testId)->get()->sum('balls');
+            $questionCount = Question::where('testId', $testId)->count();
+            $balls = Question::where('testId', 15)->get()->sum('balls');
             $time = Test::find($testId)->minutesLimit;
             Test::where('id', $testId)->update(['maxBalls' => $balls]);
 
@@ -135,7 +135,7 @@ class NewTestController extends Controller
         }    
     }
 
-    public function getQuestion(Request $request): string
+    public function getQuestionForCreate(Request $request): string
     {
         return json_encode(Question::find($request->id));
     }
@@ -252,6 +252,7 @@ class NewTestController extends Controller
     private function getTestValidator(object $request): object
     {
         return Validator::make($request->all(), [
+            'testId'   => 'request',
             'testName' => 'required',
             'minBalls' => 'required|numeric|min:0',
             'tags' => 'not_regex:/[^\w\d\s,-]/ui'

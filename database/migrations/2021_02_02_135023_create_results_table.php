@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddProfileToTests extends Migration
+class CreateResultsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,12 @@ class AddProfileToTests extends Migration
      */
     public function up()
     {
-        Schema::table('tests', function (Blueprint $table) {
-             $table->integer('maxBalls')->nullable();
+        Schema::create('results', function (Blueprint $table) {
+            $table->id();
+            $table->integer('testId');
+            $table->integer('userId');
+            $table->integer('balls');
+            $table->timestamps();
         });
     }
 
@@ -25,8 +29,6 @@ class AddProfileToTests extends Migration
      */
     public function down()
     {
-        Schema::table('tests', function (Blueprint $table) {
-             $table->dropColumn(['maxBalls']);
-        });
+        Schema::dropIfExists('results');
     }
 }

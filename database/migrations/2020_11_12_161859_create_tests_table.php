@@ -16,12 +16,17 @@ class CreateTestsTable extends Migration
         Schema::create('tests', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('tags', 100);
-            $table->text('foreword');
+            $table->json('tags');
+            $table->text('foreword')->nullable();
             $table->integer('minBalls');
-            $table->integer('minutesLimit');
+            $table->integer('maxBalls')->nullable();
+            $table->integer('minutesLimit')->nullable();
             $table->boolean('showWrongAnswers');
             $table->boolean('publicResults');
+            $table->integer('userId');
+            $table->boolean('done')->default(0);
+            $table->integer('countOfParticipants')->default(0);
+            $table->integer('countOfPassed')->default(0);
             $table->timestamps();
         });
     }
