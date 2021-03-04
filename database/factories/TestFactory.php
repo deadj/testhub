@@ -15,5 +15,6 @@ $factory->define(Test::class, function (Faker $faker) {
        	'showWrongAnswers' => false,
        	'publicResults' => false,
        	'tags' => json_encode(['this', 'is', 'tags', 'test']),
+        'done' => 1
     ];
 });

@@ -171,10 +171,7 @@ class NewTestControllerTest extends TestCase
     public function testChangeOrderOfQuestionNumbers()
     {   
         factory(\App\Models\Test::class)->create();
-        factory(\App\Models\Question::class)->create([
-            'id' => 1,
-            'number' => 1
-        ]);
+        factory(\App\Models\Question::class)->create();
         factory(\App\Models\Question::class)->create([
             'id' => 2,
             'number' => 2
@@ -222,10 +219,7 @@ class NewTestControllerTest extends TestCase
     public function testGetTestInfoToView()
     {
         factory(\App\Models\Test::class)->create();
-        factory(\App\Models\Question::class)->create([
-            'id' => 1,
-            'number' => 1
-        ]);
+        factory(\App\Models\Question::class)->create();
         factory(\App\Models\Question::class)->create([
             'id' => 2,
             'number' => 2
@@ -237,7 +231,6 @@ class NewTestControllerTest extends TestCase
             ->assertJson([
                 'questionCount' => 2,
                 'balls' => 20,
-                'time' => 5 / 2,
             ]);
     }
 

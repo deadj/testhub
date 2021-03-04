@@ -14,7 +14,7 @@ class TestController extends Controller
 {
 	public function printPrefacePage(Request $request, int $id)
 	{
-		if (Test::where('id', $id)->doesntExist()) {
+		if (Test::where('id', $id)->doesntExist() || Test::find($id)->done == 0) {
 			abort(404);
 		}		
 
@@ -39,7 +39,7 @@ class TestController extends Controller
 
 	public function printQuestionPage(Request $request, int $id)
 	{
-		if (Test::where('id', $id)->doesntExist()) {
+		if (Test::where('id', $id)->doesntExist() || Test::find($id)->done == 0) {
 			abort(404);
 		}	
 		
@@ -92,7 +92,7 @@ class TestController extends Controller
 	{
 		$answer = new Answer();
 
-		if (Test::find($request->testId)->minutesLimit != NULL && !$this->checkTestTime($request)) {
+		if (!$this->checkTestTime($request)) {
 			return response()->json('lastQuestion');
 		}
 
